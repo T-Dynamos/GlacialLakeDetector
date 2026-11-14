@@ -13,6 +13,7 @@ from typing import List, Dict, Any, Optional
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 
+from .config import PRESET_TARGETS
 from .harvester import harvest_all_data
 from .processor import (
     calculate_topographic_slope,
@@ -33,16 +34,21 @@ def run_detection_for_bbox(
     progress: Optional[Progress] = None,
     task_id: Optional[Any] = None,
     target_id: Optional[str] = None,
+    date_range: Optional[str] = None,
     force_online: bool = False,
     force_offline: bool = False
 ) -> Dict[str, Any]:
     """
     Executes the end-to-end GLOF-Watch detection pipeline for a single bounding box.
     Supports offline local disk cache and online STAC streaming.
-    Prints explicit step-by-step progress at each stage.
+    Prints explicit step-by-step progress at each stage without emojis.
     """
     t0 = time.time()
     total_pipeline_steps = 7 if plot_out else 6
+
+    # Determine date range if target has a specific preferred window
+    if not date_range and target_id and target_id in PRESET_TARGETS:
+        date_range = PRESET_TARGETS[target_id].get("date_range")
 
     def log_step(step_num: int, title: str, advance: int = 0):
         timestamp = time.strftime("%H:%M:%S")
@@ -50,7 +56,7 @@ def run_detection_for_bbox(
         if progress and task_id is not None:
             progress.update(task_id, description=f"[cyan]{name}:[/cyan] [Step {step_num}/{total_pipeline_steps}] {title}", advance=advance)
         elif verbose:
-            console.print(f"[bold cyan]▶ {msg}[/bold cyan]")
+            console.print(f"[bold cyan]>> {msg}[/bold cyan]")
 
     # Step 1: Ingest & Stream Copernicus DEM and Sentinel-1 C-band RTC
     t_step = time.time()
@@ -59,6 +65,7 @@ def run_detection_for_bbox(
         bbox,
         year=year,
         target_id=target_id,
+        date_range=date_range,
         force_online=force_online,
         force_offline=force_offline
     )
@@ -146,9 +153,9 @@ def run_detection_for_bbox(
     log_step(final_step_num, f"Mission Telemetry Synthesized: {stats['lake_count']} lakes, {stats['total_area_ha']} ha in {elapsed}s", advance=1)
 
     if progress and task_id is not None:
-        progress.update(task_id, description=f"[bold green]✔ {name}[/bold green] ({stats['lake_count']} lakes, {stats['total_area_ha']} ha) in {elapsed}s")
+        progress.update(task_id, description=f"[bold green][OK] {name}[/bold green] ({stats['lake_count']} lakes, {stats['total_area_ha']} ha) in {elapsed}s")
     elif verbose:
-        console.print(f"[bold green]✔ COMPLETE: {name} in {elapsed}s -> {stats['lake_count']} lakes ({stats['total_area_ha']} ha) | Shadows Cut: {stats['shadow_reduction_pct']}%[/bold green]")
+        console.print(f"[bold green][OK] COMPLETE: {name} in {elapsed}s -> {stats['lake_count']} lakes ({stats['total_area_ha']} ha) | Shadows Cut: {stats['shadow_reduction_pct']}%[/bold green]")
 
     return {
         "target_name": name,

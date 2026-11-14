@@ -204,6 +204,7 @@ def _read_single_channel(signed_url: str, min_lon: float, min_lat: float, max_lo
 def stream_sar_channels(
     bbox: List[float],
     year: int = DEFAULT_YEAR,
+    date_range: Optional[str] = None,
     force_online: bool = False,
     force_offline: bool = False
 ) -> Dict[str, Any]:
@@ -214,7 +215,7 @@ def stream_sar_channels(
     if force_offline and force_online:
         raise ValueError("Cannot specify both force_offline and force_online")
 
-    dt_query = f"{year}-{DEFAULT_SEASON_START}T00:00:00Z/{year}-{DEFAULT_SEASON_END}T23:59:59Z"
+    dt_query = date_range if date_range else f"{year}-{DEFAULT_SEASON_START}T00:00:00Z/{year}-{DEFAULT_SEASON_END}T23:59:59Z"
     item = search_stac(COLLECTION_SAR, bbox, dt_query)
     if not item:
         raise ValueError(f"No Sentinel-1 C-Band RTC scenes found covering bbox {bbox} in year {year}")
@@ -254,6 +255,7 @@ def harvest_all_data(
     bbox: List[float],
     year: int = DEFAULT_YEAR,
     target_id: Optional[str] = None,
+    date_range: Optional[str] = None,
     force_online: bool = False,
     force_offline: bool = False
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -274,7 +276,7 @@ def harvest_all_data(
     # 2. Parallel fetch (DEM and SAR)
     with ThreadPoolExecutor(max_workers=2) as ex:
         f_dem = ex.submit(stream_dem_window, bbox, force_online, force_offline)
-        f_sar = ex.submit(stream_sar_channels, bbox, year, force_online, force_offline)
+        f_sar = ex.submit(stream_sar_channels, bbox, year, date_range, force_online, force_offline)
         dem_data = f_dem.result()
         sar_data = f_sar.result()
     return dem_data, sar_data

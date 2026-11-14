@@ -19,15 +19,15 @@ from .pipeline import run_detection_for_bbox, run_multithreaded_pipeline
 console = Console()
 
 def list_prebuilt_targets():
-    """Prints beautiful formatted tables of all prebuilt targets from targets.json."""
+    """Prints clean formatted tables of all prebuilt targets from targets.json."""
     console.print(Panel.fit(
-        "[bold cyan]🎯 GLOF-WATCH PREBUILT TARGET CATALOG (targets.json)[/bold cyan]\n"
+        "[bold cyan]GLOF-WATCH PREBUILT TARGET CATALOG (targets.json)[/bold cyan]\n"
         "[italic]Validated cryospheric basins and large regional corridors across Ladakh & Karakoram[/italic]",
         border_style="cyan"
     ))
 
     # Table 1: Focused Glacial Lake Benchmarks
-    t1 = Table(title="🎯 Focused Glacial Lake Benchmarks", header_style="bold cyan")
+    t1 = Table(title="Focused Glacial Lake Benchmarks", header_style="bold cyan")
     t1.add_column("Target ID", style="bold green", no_wrap=True)
     t1.add_column("Lake / System Name", style="cyan")
     t1.add_column("Basin", style="dim")
@@ -48,7 +48,7 @@ def list_prebuilt_targets():
     console.print("")
 
     # Table 2: Large-Area Regional Scan Corridors
-    t2 = Table(title="🗺️ Large-Area Regional Scan Corridors (~750 to 1,100 km²)", header_style="bold magenta")
+    t2 = Table(title="Large-Area Regional Scan Corridors (~750 to 1,100 km²)", header_style="bold magenta")
     t2.add_column("Target ID", style="bold green", no_wrap=True)
     t2.add_column("Regional Corridor Name", style="magenta")
     t2.add_column("Basin", style="dim")
@@ -67,11 +67,11 @@ def list_prebuilt_targets():
         )
     console.print(t2)
     console.print("\n[bold]Quick CLI Examples:[/bold]")
-    console.print("  [green]• Run Focused Lake:[/green]        [cyan]python3 -m glof_watch.cli --target gya --plot AUTO[/cyan]")
-    console.print("  [green]• Run Regional Scan:[/green]       [cyan]python3 -m glof_watch.cli --target zanskar_regional --plot AUTO[/cyan]")
-    console.print("  [green]• Print Step Logs:[/green]         [cyan]python3 -m glof_watch.cli --target kyagar --step-log[/cyan]")
-    console.print("  [green]• Batch Run All Focused:[/green]   [cyan]python3 -m glof_watch.cli --all-focused --workers 4[/cyan]")
-    console.print("  [green]• Batch Run All Regional:[/green]  [cyan]python3 -m glof_watch.cli --all-regional --workers 4[/cyan]\n")
+    console.print("  [green]* Run Focused Lake:[/green]        [cyan]python3 -m glof_watch.cli --target gya --plot AUTO[/cyan]")
+    console.print("  [green]* Run Regional Scan:[/green]       [cyan]python3 -m glof_watch.cli --target zanskar_regional --plot AUTO[/cyan]")
+    console.print("  [green]* Print Step Logs:[/green]         [cyan]python3 -m glof_watch.cli --target kyagar --step-log[/cyan]")
+    console.print("  [green]* Batch Run All Focused:[/green]   [cyan]python3 -m glof_watch.cli --all-focused --workers 4[/cyan]")
+    console.print("  [green]* Batch Run All Regional:[/green]  [cyan]python3 -m glof_watch.cli --all-regional --workers 4[/cyan]\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -151,7 +151,7 @@ def main():
         return
 
     console.print(Panel.fit(
-        "[bold cyan]🏔️  GLOF-WATCH: RADAR-DEM GLACIAL LAKE DETECTION ENGINE[/bold cyan]\n"
+        "[bold cyan]GLOF-WATCH: RADAR-DEM GLACIAL LAKE DETECTION ENGINE[/bold cyan]\n"
         "[italic]NASA Space Apps Challenge 2026 • Team Prob-ution (Leh, Ladakh)[/italic]",
         border_style="cyan"
     ))
@@ -168,7 +168,7 @@ def main():
             targets_list = list(PRESET_TARGETS.values())
             batch_title = f"All 10 Presets (Focused + Regional)"
 
-        console.print(f"\n[bold yellow]🚀 Launching Parallel Detection across {batch_title} ({args.workers} workers)...[/bold yellow]\n")
+        console.print(f"\n[bold yellow][START] Launching Parallel Detection across {batch_title} ({args.workers} workers)...[/bold yellow]\n")
         
         results = run_multithreaded_pipeline(
             targets_list,
@@ -204,8 +204,8 @@ def main():
             )
         console.print(table)
 
-        console.print(f"\n[bold green]✅ BATCH RUN FINISHED:[/bold green] [yellow]{results['unified_geojson']['metadata']['total_lakes_found']} lakes found[/yellow] across {len(targets_list)} targets in [bold cyan]{m['wall_clock_sec']}s[/bold cyan] ([bold magenta]{m['speedup']} speedup[/bold magenta]).")
-        console.print(f"📁 Output Saved: [underline]{args.out}[/underline]\n")
+        console.print(f"\n[bold green][OK] BATCH RUN FINISHED:[/bold green] [yellow]{results['unified_geojson']['metadata']['total_lakes_found']} lakes found[/yellow] across {len(targets_list)} targets in [bold cyan]{m['wall_clock_sec']}s[/bold cyan] ([bold magenta]{m['speedup']} speedup[/bold magenta]).")
+        console.print(f"Output Saved: [underline]{args.out}[/underline]\n")
         return
 
     # --- Mode 2: Single Target Execution ---
@@ -237,7 +237,7 @@ def main():
 
     # Execute with explicit step logging or interactive progress bar
     if args.step_log:
-        console.print("[bold yellow]▶ Commencing Step-by-Step Mission Execution:[/bold yellow]")
+        console.print("[bold yellow]>> Commencing Step-by-Step Mission Execution:[/bold yellow]")
         result = run_detection_for_bbox(
             bbox,
             name=name,
@@ -283,14 +283,14 @@ def main():
     naive_ha = meta.get("naive_radar_area_ha", stats["total_area_ha"])
     shadow_cut_ha = max(0.0, round(naive_ha - stats["total_area_ha"], 2))
 
-    console.print(f"\n[bold green]✅ MISSION ACCOMPLISHED for {name}:[/bold green]")
-    console.print(f"   • [bold]Glacial Lakes Detected:[/bold]  [cyan]{stats['lake_count']}[/cyan]")
-    console.print(f"   • [bold]Clean Lake Area:[/bold]         [green]{stats['total_area_ha']} ha[/green]")
-    console.print(f"   • [bold]Cliff Shadows Cut:[/bold]       [blue]{stats['shadow_reduction_pct']}%[/blue] ({shadow_cut_ha} ha shadow noise filtered)")
-    console.print(f"   • [bold]Total Wall Clock:[/bold]        [yellow]{result['elapsed_sec']}s[/yellow]")
-    console.print(f"   • [bold]GeoJSON Output:[/bold]          [underline]{args.out}[/underline]")
+    console.print(f"\n[bold green][OK] MISSION ACCOMPLISHED for {name}:[/bold green]")
+    console.print(f"   * [bold]Glacial Lakes Detected:[/bold]  [cyan]{stats['lake_count']}[/cyan]")
+    console.print(f"   * [bold]Clean Lake Area:[/bold]         [green]{stats['total_area_ha']} ha[/green]")
+    console.print(f"   * [bold]Cliff Shadows Cut:[/bold]       [blue]{stats['shadow_reduction_pct']}%[/blue] ({shadow_cut_ha} ha shadow noise filtered)")
+    console.print(f"   * [bold]Total Wall Clock:[/bold]        [yellow]{result['elapsed_sec']}s[/yellow]")
+    console.print(f"   * [bold]GeoJSON Output:[/bold]          [underline]{args.out}[/underline]")
     if result.get("plot_path"):
-        console.print(f"   • [bold]Diagnostic Plot:[/bold]         [magenta]{result['plot_path']}[/magenta]")
+        console.print(f"   * [bold]Diagnostic Plot:[/bold]         [magenta]{result['plot_path']}[/magenta]")
     console.print("")
 
 if __name__ == "__main__":

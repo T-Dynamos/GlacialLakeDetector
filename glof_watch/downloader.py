@@ -102,10 +102,11 @@ def cache_preset_target(target_id: str, target_info: Dict[str, Any], year: int =
     name = target_info.get('name', target_id)
     
     if verbose:
-        console.print(f"[bold cyan]▶ Ingesting AOI Raster Cache for {name}...[/bold cyan]")
+        console.print(f"[bold cyan]>> Ingesting AOI Raster Cache for {name}...[/bold cyan]")
         
+    date_range = target_info.get("date_range")
     dem_data = stream_dem_window(bbox)
-    sar_data = stream_sar_channels(bbox, year=year)
+    sar_data = stream_sar_channels(bbox, year=year, date_range=date_range)
     
     dem_path = os.path.join(target_dir, "dem.tif")
     vv_path = os.path.join(target_dir, "sar_vv.tif")
@@ -131,7 +132,7 @@ def cache_preset_target(target_id: str, target_info: Dict[str, Any], year: int =
         json.dump(meta, f, indent=2)
         
     if verbose:
-        console.print(f"[bold green]✔ Cached {name} -> {target_dir}[/bold green]")
+        console.print(f"[bold green][OK] Cached {name} -> {target_dir}[/bold green]")
         
     return {
         "target_id": target_id,
@@ -144,27 +145,27 @@ def cache_preset_target(target_id: str, target_info: Dict[str, Any], year: int =
 def cache_all_presets(year: int = DEFAULT_YEAR):
     """Caches all 10 presets in targets.json sequentially to respect rate limits."""
     ensure_cache_dirs()
-    console.print(f"[bold yellow]🚀 Pre-caching all {len(PRESET_TARGETS)} targets into {TARGETS_CACHE_DIR}...[/bold yellow]\n")
+    console.print(f"[bold yellow][START] Pre-caching all {len(PRESET_TARGETS)} targets into {TARGETS_CACHE_DIR}...[/bold yellow]\n")
     
     results = {}
     for tid, info in PRESET_TARGETS.items():
         name = info.get("name", tid)
         target_dir = os.path.join(TARGETS_CACHE_DIR, tid)
         if os.path.exists(os.path.join(target_dir, "dem.tif")) and os.path.exists(os.path.join(target_dir, "sar_vv.tif")):
-            console.print(f"  [dim]✔ Already Cached:[/dim] [cyan]{name}[/cyan]")
+            console.print(f"  [dim][OK] Already Cached:[/dim] [cyan]{name}[/cyan]")
             results[tid] = {"status": "exists", "dir": target_dir}
             continue
             
         try:
             res = cache_preset_target(tid, info, year=year, verbose=False)
             results[tid] = res
-            console.print(f"  [green]✔ Cached Successfully:[/green] [cyan]{name}[/cyan]")
+            console.print(f"  [green][OK] Cached Successfully:[/green] [cyan]{name}[/cyan]")
             import time
             time.sleep(1.0) # Graceful delay for STAC API
         except Exception as e:
-            console.print(f"  [red]✖ Failed {name}:[/red] {e}")
+            console.print(f"  [red][ERROR] Failed {name}:[/red] {e}")
                 
-    console.print(f"\n[bold green]✅ Pre-caching finished: {len(results)}/{len(PRESET_TARGETS)} targets ready offline in {TARGETS_CACHE_DIR}[/bold green]\n")
+    console.print(f"\n[bold green][OK] Pre-caching finished: {len(results)}/{len(PRESET_TARGETS)} targets ready offline in {TARGETS_CACHE_DIR}[/bold green]\n")
     return results
 
 def download_regional_dem_tiles(bboxes: Optional[List[List[float]]] = None):
@@ -202,7 +203,7 @@ def download_regional_dem_tiles(bboxes: Optional[List[List[float]]] = None):
             raw_href = item['assets']['data']['href']
             signed_url = sign_asset_url(raw_href)
             download_file_with_progress(signed_url, out_file, description=f"[cyan]DEM:[/cyan] {tile_id[:32]}...", progress=progress)
-            console.print(f"  [green]✔ Saved DEM Tile:[/green] [cyan]{out_file}[/cyan]")
+            console.print(f"  [green][OK] Saved DEM Tile:[/green] [cyan]{out_file}[/cyan]")
 
 if __name__ == "__main__":
     import argparse

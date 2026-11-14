@@ -16,7 +16,8 @@
       "basin": "Upper Shyok / Karakoram (Northern Ladakh)",
       "elevation_approx_m": 4880,
       "description": "Surge glacier ice-dammed lake with 30+ recorded historical GLOFs",
-      "bbox": [77.165, 35.660, 77.215, 35.700]
+      "bbox": [77.165, 35.660, 77.215, 35.700],
+      "date_range": "2023-08-15T00:00:00Z/2023-08-25T23:59:59Z"
     },
     "drang_drung": {
       "id": "drang_drung",

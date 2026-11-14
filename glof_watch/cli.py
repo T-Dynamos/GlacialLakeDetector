@@ -283,10 +283,11 @@ def main():
     naive_ha = meta.get("naive_radar_area_ha", stats["total_area_ha"])
     shadow_cut_ha = max(0.0, round(naive_ha - stats["total_area_ha"], 2))
 
+    seg_model = meta.get("segmentation_model", "Multi-Modal Active Contour (NDWI + SAR)")
     console.print(f"\n[bold green][OK] MISSION ACCOMPLISHED for {name}:[/bold green]")
     console.print(f"   * [bold]Glacial Lakes Detected:[/bold]  [cyan]{stats['lake_count']}[/cyan]")
     console.print(f"   * [bold]Exact Lake Surface Area:[/bold] [green]{stats['total_area_ha']} ha[/green]")
-    console.print(f"   * [bold]Segmentation Model:[/bold]      [magenta]Active Contour (Chan-Vese ACWE + Equipotential)[/magenta]")
+    console.print(f"   * [bold]Segmentation Model:[/bold]      [magenta]{seg_model}[/magenta]")
     console.print(f"   * [bold]Cliff Shadows Cut:[/bold]       [blue]{stats['shadow_reduction_pct']}%[/blue] ({shadow_cut_ha} ha shadow noise filtered)")
     console.print(f"   * [bold]Total Wall Clock:[/bold]        [yellow]{result['elapsed_sec']}s[/yellow]")
     console.print(f"   * [bold]GeoJSON Output:[/bold]          [underline]{args.out}[/underline]")

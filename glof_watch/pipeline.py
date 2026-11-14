@@ -136,9 +136,18 @@ def run_detection_for_bbox(
     seed_count = raw_stats['lake_count']
     log_step(5, f"Identified {seed_count} Glacial Lake Candidate Seeds ({raw_stats['total_area_ha']} ha initial, {round(time.time() - t_step, 2)}s)", advance=1)
 
+    # Ingest High-Resolution Satellite Backdrop (Sentinel-2 10m True Color / SAR Composite)
+    from .harvester import get_satellite_backdrop
+    satellite_img = get_satellite_backdrop(
+        bbox,
+        target_id=target_id,
+        force_online=force_online,
+        force_offline=force_offline
+    )
+
     # Step 6: Active Contour Image Segmentation Model for Exact Shoreline Boundaries
     t_step = time.time()
-    log_step(6, "Executing Active-Contour Segmentation Model (Chan-Vese ACWE & Boundary Delineation)...", advance=0)
+    log_step(6, "Executing Multi-Modal Active-Contour Segmentation (Sub-Pixel Shoreline Delineation)...", advance=0)
     from .segmenter import segment_exact_lake_boundaries
     segmentation_out = segment_exact_lake_boundaries(
         dem_arr=dem_arr,
@@ -148,12 +157,14 @@ def run_detection_for_bbox(
         seed_mask=seed_mask,
         bbox=bbox,
         res_m=res_m,
-        metadata=metadata
+        metadata=metadata,
+        optical_img=satellite_img
     )
     refined_lake_mask = segmentation_out['refined_lake_mask']
     refined_lakes = segmentation_out['segmented_lakes']
     refined_stats = segmentation_out['stats']
-    log_step(6, f"Segmentation Model Converged: Delineated {len(refined_lakes)} Exact Lake Boundaries ({round(time.time() - t_step, 2)}s)", advance=1)
+    model_tag = "Multi-Modal NDWI+SAR" if satellite_img is not None else "Sub-pixel SAR"
+    log_step(6, f"Segmentation Model Converged [{model_tag}]: Delineated {len(refined_lakes)} Exact Lake Boundaries ({round(time.time() - t_step, 2)}s)", advance=1)
 
     # Step 7: Morphometry & GLOF Hazard Telemetry Compilation
     t_step = time.time()
@@ -169,7 +180,7 @@ def run_detection_for_bbox(
             "total_water_area_ha": round(total_water_area_ha, 2),
             "naive_radar_area_ha": round(naive_area, 2),
             "cliff_shadow_reduction_pct": round(shadow_reduction, 1),
-            "segmentation_model": "Active_Contour_Chan_Vese_Equipotential",
+            "segmentation_model": "Multi_Modal_NDWI_SAR_Active_Contour" if satellite_img is not None else "Subpixel_SAR_Active_Contour",
             "target_name": name,
             "bbox": bbox
         },
@@ -188,14 +199,7 @@ def run_detection_for_bbox(
         t_step = time.time()
         log_step(8, "Rendering 4-Panel Ultra-HD (300 DPI) Diagnostic Figure with Satellite Backdrop...", advance=0)
         from .visualizer import plot_detection_results
-        from .harvester import get_satellite_backdrop
         metadata["total_area_ha"] = final_stats['total_area_ha']
-        satellite_img = get_satellite_backdrop(
-            bbox,
-            target_id=target_id,
-            force_online=force_online,
-            force_offline=force_offline
-        )
         saved_plot = plot_detection_results(
             dem_arr=dem_arr,
             slope_deg=slope_deg,

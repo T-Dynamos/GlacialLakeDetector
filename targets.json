@@ -1,0 +1,96 @@
+{
+  "focused_lakes": {
+    "gya": {
+      "id": "gya",
+      "name": "Gya Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Upper Indus Basin (Central Ladakh)",
+      "elevation_approx_m": 5411,
+      "description": "Historic August 2014 benchmark moraine-dammed outburst lake",
+      "bbox": [77.595, 33.605, 77.635, 33.635]
+    },
+    "kyagar": {
+      "id": "kyagar",
+      "name": "Kyagar Ice-Dammed Lake",
+      "type": "focused_lake",
+      "basin": "Upper Shyok / Karakoram (Northern Ladakh)",
+      "elevation_approx_m": 4880,
+      "description": "Surge glacier ice-dammed lake with 30+ recorded historical GLOFs",
+      "bbox": [77.165, 35.660, 77.215, 35.700]
+    },
+    "drang_drung": {
+      "id": "drang_drung",
+      "name": "Drang-Drung Glacier Terminus",
+      "type": "focused_lake",
+      "basin": "Zanskar River Basin (Southern Ladakh)",
+      "elevation_approx_m": 4450,
+      "description": "Proglacial and supraglacial lake complex at Ladakh's largest accessible glacier",
+      "bbox": [76.790, 33.495, 76.840, 33.535]
+    },
+    "rumbak": {
+      "id": "rumbak",
+      "name": "Rumbak Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Hemis National Park / Leh Valley (Ladakh)",
+      "elevation_approx_m": 5254,
+      "description": "Site of the August 2021 moraine lake outburst flood",
+      "bbox": [77.400, 33.980, 77.445, 34.020]
+    },
+    "phyang": {
+      "id": "phyang",
+      "name": "Phyang Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Phyang Valley / Leh District (Ladakh)",
+      "elevation_approx_m": 5350,
+      "description": "Site of the 2006 moraine breach near Leh",
+      "bbox": [77.545, 34.265, 77.585, 34.305]
+    },
+    "parkachik": {
+      "id": "parkachik",
+      "name": "Parkachik Glacial Snout",
+      "type": "focused_lake",
+      "basin": "Suru Valley / Nun-Kun Massif (Western Ladakh)",
+      "elevation_approx_m": 4200,
+      "description": "Proglacial melt pond at rapidly retreating Parkachik snout",
+      "bbox": [75.925, 34.105, 75.975, 34.145]
+    }
+  },
+  "regional_scan_areas": {
+    "upper_indus_regional": {
+      "id": "upper_indus_regional",
+      "name": "Upper Indus & Gya-Taglang La Regional Catchment",
+      "type": "regional_scan",
+      "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+      "approx_area_sq_km": 900,
+      "description": "Large-scale 900 km² corridor scanning multiple glaciated valleys between Gya and Taglang La",
+      "bbox": [77.450, 33.500, 77.800, 33.750]
+    },
+    "zanskar_regional": {
+      "id": "zanskar_regional",
+      "name": "Zanskar Valley Glacial Corridor",
+      "type": "regional_scan",
+      "basin": "Zanskar River Basin (Padum / Pensi La Range)",
+      "approx_area_sq_km": 1100,
+      "description": "Large-scale 1,100 km² glaciated canyon corridor above Padum and Karsha",
+      "bbox": [76.600, 33.400, 77.000, 33.700]
+    },
+    "suru_nun_kun_regional": {
+      "id": "suru_nun_kun_regional",
+      "name": "Suru Valley & Nun-Kun Massif Regional Catchment",
+      "type": "regional_scan",
+      "basin": "Suru River Catchment (Kargil-Zanskar Arterial)",
+      "approx_area_sq_km": 750,
+      "description": "Large-scale 750 km² high-relief massif covering Nun-Kun and Shafat glaciers",
+      "bbox": [75.800, 34.000, 76.150, 34.300]
+    },
+    "shyok_karakoram_regional": {
+      "id": "shyok_karakoram_regional",
+      "name": "Upper Shyok & Karakoram Surge Corridor",
+      "type": "regional_scan",
+      "basin": "Upper Shyok & Northern Karakoram Margin",
+      "approx_area_sq_km": 850,
+      "description": "Large-scale 850 km² corridor tracking ephemeral ice dams and surge glaciers",
+      "bbox": [77.100, 35.600, 77.450, 35.850]
+    }
+  }
+}

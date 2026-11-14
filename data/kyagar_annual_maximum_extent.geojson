@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "name": "Kyagar_Lake_Annual_Maximum_Extent_2023",
+  "metadata": {
+    "algorithm": "GLOF-Watch v3.0 Full-Year Min-Composite",
+    "sensor": "Sentinel-1 C-Band RTC Multi-Temporal",
+    "observations_analyzed": 9,
+    "peak_date": "2023-08-10",
+    "max_area_ha": 3.25
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_name": "Kyagar Ice-Dammed Lake",
+        "basin": "Upper Shyok / Karakoram (Northern Ladakh)",
+        "max_area_ha": 3.25,
+        "mean_elevation_m": 4746.8,
+        "peak_fill_date": "2023-08-10",
+        "seasonal_surge_expansion": "+3.25 ha"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.17777777777778,
+              35.67222222222222
+            ],
+            [
+              77.17944444444446,
+              35.67222222222222
+            ],
+            [
+              77.17944444444446,
+              35.67361111111111
+            ],
+            [
+              77.17777777777778,
+              35.67361111111111
+            ],
+            [
+              77.17777777777778,
+              35.67222222222222
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

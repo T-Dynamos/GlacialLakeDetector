@@ -1,0 +1,96 @@
+{
+  "type": "FeatureCollection",
+  "name": "Multithreaded_Detected_Lakes_Ladakh",
+  "metadata": {
+    "parallel_workers": 4,
+    "wall_clock_sec": 36.59,
+    "speedup_factor": "3.40x",
+    "targets_processed": 5
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_system": "Gya Glacial Lake",
+        "sub_id": "Gya_Glacial_Lake_1",
+        "basin": "Upper Indus Basin (Central Ladakh)",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "date": "2023-09-22",
+        "area_ha": 5.83,
+        "elevation_m": 5391.3,
+        "backscatter_vv_db": -18.5,
+        "thread_processed": "WorkerThread_1",
+        "processing_latency_sec": 24.64
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.61222222222223,
+              33.61666666666667
+            ],
+            [
+              77.61416666666666,
+              33.61666666666667
+            ],
+            [
+              77.61416666666666,
+              33.61944444444444
+            ],
+            [
+              77.61222222222223,
+              33.61944444444444
+            ],
+            [
+              77.61222222222223,
+              33.61666666666667
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_system": "Kyagar Glacial Lake",
+        "sub_id": "Kyagar_Glacial_Lake_1",
+        "basin": "Upper Shyok / Karakoram (Northern Ladakh)",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "date": "2023-09-27",
+        "area_ha": 1.43,
+        "elevation_m": 4744.6,
+        "backscatter_vv_db": -16.8,
+        "thread_processed": "WorkerThread_0",
+        "processing_latency_sec": 32.52
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.17777777777778,
+              35.672777777777775
+            ],
+            [
+              77.17861111111111,
+              35.672777777777775
+            ],
+            [
+              77.17861111111111,
+              35.67361111111111
+            ],
+            [
+              77.17777777777778,
+              35.67361111111111
+            ],
+            [
+              77.17777777777778,
+              35.672777777777775
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

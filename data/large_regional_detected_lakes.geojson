@@ -1,0 +1,270 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "total_lakes_detected": 6,
+    "total_water_area_ha": 20.56,
+    "naive_radar_area_ha": 1756.32,
+    "cliff_shadow_reduction_pct": 98.8,
+    "target_name": "Upper_Indus_Gya_Regional_Catchment",
+    "bbox": [
+      77.45,
+      33.5,
+      77.8,
+      33.75
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_001",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 0.86,
+        "elevation_m": 3751.7,
+        "mean_vv_backscatter_db": -18.0,
+        "gsi_score": 0.184,
+        "risk_level": "LOW_RISK"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.74083333333333,
+              33.72638888888889
+            ],
+            [
+              77.74138888888889,
+              33.72638888888889
+            ],
+            [
+              77.74138888888889,
+              33.72694444444444
+            ],
+            [
+              77.74083333333333,
+              33.72694444444444
+            ],
+            [
+              77.74083333333333,
+              33.72638888888889
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_002",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 3.63,
+        "elevation_m": 5262.2,
+        "mean_vv_backscatter_db": -18.4,
+        "gsi_score": 0.863,
+        "risk_level": "HIGH_ALERT"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.61111111111111,
+              33.721944444444446
+            ],
+            [
+              77.61277777777778,
+              33.721944444444446
+            ],
+            [
+              77.61277777777778,
+              33.72361111111111
+            ],
+            [
+              77.61111111111111,
+              33.72361111111111
+            ],
+            [
+              77.61111111111111,
+              33.721944444444446
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_003",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 4.11,
+        "elevation_m": 5391.3,
+        "mean_vv_backscatter_db": -18.9,
+        "gsi_score": 0.911,
+        "risk_level": "HIGH_ALERT"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.61222222222223,
+              33.61666666666667
+            ],
+            [
+              77.6138888888889,
+              33.61666666666667
+            ],
+            [
+              77.6138888888889,
+              33.618611111111115
+            ],
+            [
+              77.61222222222223,
+              33.618611111111115
+            ],
+            [
+              77.61222222222223,
+              33.61666666666667
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_004",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 2.68,
+        "elevation_m": 4830.0,
+        "mean_vv_backscatter_db": -16.0,
+        "gsi_score": 0.711,
+        "risk_level": "HIGH_ALERT"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.68611111111112,
+              33.61527777777778
+            ],
+            [
+              77.68722222222222,
+              33.61527777777778
+            ],
+            [
+              77.68722222222222,
+              33.61694444444444
+            ],
+            [
+              77.68611111111112,
+              33.61694444444444
+            ],
+            [
+              77.68611111111112,
+              33.61527777777778
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_005",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 0.86,
+        "elevation_m": 5050.6,
+        "mean_vv_backscatter_db": -15.5,
+        "gsi_score": 0.6,
+        "risk_level": "MODERATE"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.7011111111111,
+              33.5875
+            ],
+            [
+              77.70166666666667,
+              33.5875
+            ],
+            [
+              77.70166666666667,
+              33.588055555555556
+            ],
+            [
+              77.7011111111111,
+              33.588055555555556
+            ],
+            [
+              77.7011111111111,
+              33.5875
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "lake_id": "GLOF_DET_006",
+        "target_name": "Upper_Indus_Gya_Regional_Catchment",
+        "basin": "Upper Indus & Hemis Trans-Himalayan Range",
+        "sensor": "Sentinel-1 C-Band IW RTC",
+        "acquisition_date": "2023-09-22",
+        "area_ha": 8.41,
+        "elevation_m": 5221.3,
+        "mean_vv_backscatter_db": -17.0,
+        "gsi_score": 1.0,
+        "risk_level": "HIGH_ALERT"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.6625,
+              33.55388888888889
+            ],
+            [
+              77.665,
+              33.55388888888889
+            ],
+            [
+              77.665,
+              33.55722222222222
+            ],
+            [
+              77.6625,
+              33.55722222222222
+            ],
+            [
+              77.6625,
+              33.55388888888889
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

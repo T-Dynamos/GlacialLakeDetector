@@ -48,6 +48,7 @@ tmp/
 .cache/
 .pytest_cache/
 detected_lakes*
+*_diagnostic.png
 data/*test*
 data/*offline*
 

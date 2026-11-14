@@ -39,22 +39,26 @@ The codebase is strictly decoupled into modular, single-responsibility component
 glof_watch/
 ├── __init__.py      # Package initialization & public API exports
 ├── config.py        # Central thresholds, API endpoints, and preset Ladakh targets
-├── harvester.py     # [Subagent 1]: Parallel DEM & Sentinel-1 C-Band RTC STAC streaming
+├── harvester.py     # [Subagent 1]: Parallel DEM & Sentinel-1 C-Band RTC STAC streaming & offline disk reader
 ├── processor.py     # [Subagent 2]: Slope derivation, NoData-safe reprojection & morphology
-├── detector.py      # [Subagent 3]: Water specularity extraction, vectorization & GSI scoring
-├── visualizer.py    # [Subagent 4]: 4-panel diagnostic figure rendering
+├── detector.py      # [Subagent 3]: Water specularity extraction, cliff shadow stripping & candidate clustering
+├── segmenter.py     # [Subagent 4]: Active Contour (Chan-Vese ACWE) & exact vector shoreline delineation
+├── visualizer.py    # [Subagent 5]: 4-panel diagnostic figure rendering with adaptive basin zoom & vector overlays
+├── downloader.py    # Offline disk pre-caching engine with rate-limit exponential backoff
 ├── pipeline.py      # [Orchestrator]: Single & Multithreaded execution coordinator
-└── cli.py           # Production CLI interface with Rich progress tracking
+└── cli.py           # Production CLI interface with Rich step logging and telemetry
 ```
 
 ### Module Responsibilities:
-* **`config.py`:** Centralizes all physical thresholds ($\sigma^0_{\text{VV}} < -15\text{ dB}$, $\sigma^0_{\text{VH}} < -21\text{ dB}$, $\text{Slope} \le 8^\circ$, $\text{Elev} \ge 3,200\text{ m}$, $\text{Area} \ge 0.35\text{ ha}$), STAC API URLs, and preset Ladakh targets.
-* **`harvester.py` (Subagent 1):** Connects to Microsoft Planetary Computer STAC API, signs SAS tokens, and streams sub-windows of Copernicus 30m DEM and Sentinel-1 C-band RTC Cloud-Optimized GeoTIFFs (COGs) without downloading multi-gigabyte raw files.
+* **`config.py`:** Centralizes all physical thresholds ($\sigma^0_{\text{VV}} < -15\text{ dB}$, $\sigma^0_{\text{VH}} < -21\text{ dB}$, $\text{Slope} \le 8^\circ$, $\text{Elev} \ge 3,200\text{ m}$, $\text{Area} \ge 0.35\text{ ha}$), STAC API URLs, offline cache paths, and preset Ladakh targets.
+* **`harvester.py` (Subagent 1):** Connects to local offline disk cache (`/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE`) with fallback to Microsoft Planetary Computer STAC API, signing SAS tokens and streaming COGs.
 * **`processor.py` (Subagent 2):** Calculates terrain slope ($\nabla z$), executes multi-threaded GDAL raster warping with strict NoData masking ($-32,768.0 \to \text{NaN}$), converts linear power to decibels ($\sigma^0_{\text{dB}}$), and applies morphological opening and closing.
-* **`detector.py` (Subagent 3):** Extracts specular water pixels, strips cliff shadows, executes connected component labeling, vectorizes detected lakes into `Polygon` geometries, and computes the GLOF Susceptibility Index (GSI).
-* **`visualizer.py` (Subagent 4):** Automatically generates publication-quality 4-panel diagnostic figures showing DEM terrain, SAR backscatter, slope shielding, and final detected lake polygons.
+* **`detector.py` (Subagent 3):** Extracts specular water pixels, strips cliff shadows, executes connected component labeling, and identifies candidate lake seeds.
+* **`segmenter.py` (Subagent 4):** Executes Morphological Active Contours (Chan-Vese ACWE) with DEM equipotential surface constraints, extracting sub-pixel smoothed exact shoreline polygons, perimeter lengths, and Shoreline Development Indices ($S_D$).
+* **`visualizer.py` (Subagent 5):** Generates publication-quality 4-panel diagnostic figures showing DEM terrain, SAR backscatter, slope shielding, and final detected lake polygons. For particular lakes, applies high-resolution basin zoom with vector shoreline boundaries visible to the naked eye.
 * **`pipeline.py` (Orchestrator):** Coordinates the subagents end-to-end and provides both single-AOI execution and multithreaded batch processing (`ThreadPoolExecutor`).
-* **`cli.py`:** Command-line interface with interactive `rich` progress bars, status tables, and JSON outputs.
+* **`downloader.py`:** Pre-caches regional and focused datasets to high-speed offline storage with exponential backoff on HTTP 429 rate limits.
+* **`cli.py`:** Command-line interface with explicit step-by-step logging, interactive progress bars, and JSON outputs.
 
 ---
 

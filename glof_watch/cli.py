@@ -233,7 +233,7 @@ def main():
         console.print(f"[bold]Plot Destination:[/bold] [magenta]{plot_path}[/magenta]")
     console.print("")
 
-    total_steps = 7 if plot_path else 6
+    total_steps = 8 if plot_path else 7
 
     # Execute with explicit step logging or interactive progress bar
     if args.step_log:
@@ -285,7 +285,8 @@ def main():
 
     console.print(f"\n[bold green][OK] MISSION ACCOMPLISHED for {name}:[/bold green]")
     console.print(f"   * [bold]Glacial Lakes Detected:[/bold]  [cyan]{stats['lake_count']}[/cyan]")
-    console.print(f"   * [bold]Clean Lake Area:[/bold]         [green]{stats['total_area_ha']} ha[/green]")
+    console.print(f"   * [bold]Exact Lake Surface Area:[/bold] [green]{stats['total_area_ha']} ha[/green]")
+    console.print(f"   * [bold]Segmentation Model:[/bold]      [magenta]Active Contour (Chan-Vese ACWE + Equipotential)[/magenta]")
     console.print(f"   * [bold]Cliff Shadows Cut:[/bold]       [blue]{stats['shadow_reduction_pct']}%[/blue] ({shadow_cut_ha} ha shadow noise filtered)")
     console.print(f"   * [bold]Total Wall Clock:[/bold]        [yellow]{result['elapsed_sec']}s[/yellow]")
     console.print(f"   * [bold]GeoJSON Output:[/bold]          [underline]{args.out}[/underline]")

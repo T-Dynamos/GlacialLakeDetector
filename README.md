@@ -110,26 +110,37 @@ GLOF-Watch executes an end-to-end 7-step pipeline:
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Step 5: Morphological Filtering & Connected Components      │
+│ Step 5: Candidate Lake Seed Identification & Clustering     │
 │  - Binary opening (2x2) strips speckle noise                │
-│  - Binary closing (3x3) seals internal lake holes           │
 │  - 8-neighbor connected component labeling                  │
-│  - Threshold: Discard blobs < 0.35 ha (3,500 m²)            │
+│  - Threshold: Localize candidate seed clusters (≥ 0.35 ha)  │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Step 6: GLOF Susceptibility Index (GSI) & Vectorization     │
-│  - Vectorize boundaries to Shapely Polygon geometries       │
-│  - Compute GSI = 0.5 * Elev_factor + 0.5 * Size_factor      │
-│  - Classify risk: HIGH_ALERT (≥0.70), MODERATE (≥0.40), LOW │
+│ Step 6: Active Contour Image Segmentation Model             │
+│  - Morphological Chan-Vese ACWE level-set curve evolution   │
+│  - Topographic equipotential constraint (|z - z_med| ≤ 18m) │
+│  - Strict moraine wall slope clamping (slope ≤ 10°)         │
+│  - Delineates exact sub-pixel physical water shorelines     │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Step 7: Synthesis & 4-Panel Diagnostic Rendering            │
-│  - Export GeoJSON FeatureCollection with ISO metadata       │
-│  - Render 4-panel diagnostic plot (DEM, VV, Shield, Lakes)  │
+│ Step 7: Morphometry & GLOF Hazard Telemetry Compilation     │
+│  - Douglas-Peucker topological vector polygon extraction    │
+│  - Compute Shoreline Development Index (SDI = P / 2√(πA))   │
+│  - Compute GLOF Susceptibility Index (GSI):                 │
+│    GSI = 0.4*Elev + 0.4*Size + 0.2*Shape                    │
+│  - Classify risk: HIGH_ALERT (≥0.70), MODERATE, LOW_RISK    │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 8: Synthesis & 4-Panel Diagnostic Rendering            │
+│  - Export GeoJSON FeatureCollection with exact boundaries   │
+│  - Adaptive basin zoom for focused lakes (naked-eye clarity)│
+│  - Render 4-panel diagnostic plot with vector polygon rings │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,11 +161,13 @@ The system is decoupled into single-responsibility Python modules:
 ```
 glof_watch/
 ├── __init__.py      # Package entry point and clean public API
-├── config.py        # Centralized physical thresholds, STAC endpoints, target loader
-├── harvester.py     # Subagent 1: STAC query, SAS signing, parallel COG HTTP streaming
+├── config.py        # Centralized physical thresholds, STAC endpoints, offline cache paths
+├── harvester.py     # Subagent 1: Hybrid offline disk cache reader & parallel STAC streaming
 ├── processor.py     # Subagent 2: Slope derivation, GDAL multi-threaded warp, morphology
-├── detector.py      # Subagent 3: Dual-pol water extraction, slope shield, GSI scoring
-├── visualizer.py    # Subagent 4: High-resolution 4-panel diagnostic figure generation
+├── detector.py      # Subagent 3: Dual-pol water extraction, slope shield, candidate clustering
+├── segmenter.py     # Subagent 4: Active Contour (Chan-Vese ACWE) exact shoreline delineation
+├── visualizer.py    # Subagent 5: High-resolution 4-panel diagnostic plot with adaptive basin zoom
+├── downloader.py    # Subagent 6: High-speed offline pre-cacher with rate-limit exponential backoff
 ├── pipeline.py      # Orchestrator: End-to-end mission execution with step-by-step telemetry
 ├── cli.py           # Production CLI with Rich tables, progress bars, and JSON outputs
 └── targets.json     # Streamlined catalog of focused benchmarks & regional corridors

@@ -280,3 +280,60 @@ def harvest_all_data(
         dem_data = f_dem.result()
         sar_data = f_sar.result()
     return dem_data, sar_data
+
+
+def get_satellite_backdrop(
+    bbox: List[float],
+    target_id: Optional[str] = None,
+    force_online: bool = False,
+    force_offline: bool = False
+) -> Optional[np.ndarray]:
+    """
+    Retrieves high-resolution optical satellite imagery (Sentinel-2 L2A True-Color 10m)
+    for the requested AOI. Checks local cache first, then falls back seamlessly to online STAC.
+    """
+    # 1. Check local target cache
+    if not force_online and target_id:
+        cache_path = os.path.join(TARGETS_CACHE_DIR, target_id, 's2_optical.tif')
+        if os.path.exists(cache_path):
+            try:
+                with rasterio.open(cache_path) as src:
+                    rgb = src.read()  # (3, H, W)
+                    if rgb.shape[0] == 3:
+                        return np.transpose(rgb, (1, 2, 0))  # (H, W, 3)
+            except Exception:
+                pass
+
+    if force_offline:
+        return None
+
+    # 2. Online STAC query for Sentinel-2 L2A True Color Image (TCI)
+    try:
+        payload = {
+            'collections': ['sentinel-2-l2a'],
+            'bbox': bbox,
+            'datetime': f"{DEFAULT_YEAR}-07-01T00:00:00Z/{DEFAULT_YEAR}-09-30T23:59:59Z",
+            'query': {'eo:cloud_cover': {'lt': 25}},
+            'limit': 1
+        }
+        req = urllib.request.Request(
+            STAC_API_URL,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'}
+        )
+        with urllib.request.urlopen(req, context=_SSL_CTX, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            items = data.get('features', [])
+            if items:
+                tci_href = items[0]['assets']['visual']['href']
+                signed_url = sign_asset_url(tci_href)
+                with rasterio.open(signed_url) as src:
+                    utm_bounds = transform_bounds('EPSG:4326', src.crs, *bbox)
+                    win = from_bounds(*utm_bounds, transform=src.transform)
+                    rgb = src.read(window=win)
+                    if rgb.shape[0] == 3:
+                        return np.transpose(rgb, (1, 2, 0))
+    except Exception:
+        pass
+
+    return None

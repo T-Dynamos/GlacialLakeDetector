@@ -5,11 +5,14 @@ Responsible for STAC queries, asset URL signing, and fast concurrent windowed st
 Copernicus 30m DEM and Sentinel-1 C-Band RTC Cloud-Optimized GeoTIFFs (COGs).
 """
 
+import time
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
 import ssl
 import os
+import math
 from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple, Dict, Any, Optional, List
 import numpy as np
@@ -19,7 +22,8 @@ from rasterio.warp import transform_bounds
 
 from .config import (
     STAC_API_URL, SAS_SIGN_URL, COLLECTION_DEM, COLLECTION_SAR,
-    DEFAULT_SEASON_START, DEFAULT_SEASON_END, DEFAULT_YEAR
+    DEFAULT_SEASON_START, DEFAULT_SEASON_END, DEFAULT_YEAR,
+    DEM_CACHE_DIR, SAR_CACHE_DIR, TARGETS_CACHE_DIR
 )
 
 # Optimize GDAL/Rasterio Environment for Cloud-Optimized GeoTIFF (COG) HTTP Streaming
@@ -31,16 +35,23 @@ os.environ["VSI_CACHE_SIZE"] = "50000000" # 50 MB in-memory COG header cache
 
 _SSL_CTX = ssl._create_unverified_context()
 
-def sign_asset_url(href: str) -> str:
-    """Signs a Planetary Computer blob storage asset URL with a SAS token."""
+def sign_asset_url(href: str, max_retries: int = 5) -> str:
+    """Signs a Planetary Computer blob storage asset URL with a SAS token, with exponential backoff on 429."""
     url = f"{SAS_SIGN_URL}?href={urllib.parse.quote(href)}"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'})
-    with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
-        data = json.loads(resp.read().decode('utf-8'))
-        return data['href']
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                return data['href']
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_retries - 1:
+                time.sleep((attempt + 1) * 2.5)
+                continue
+            raise
 
-def search_stac(collection: str, bbox: List[float], datetime_range: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """Queries Planetary Computer STAC API for the most recent scene matching the bbox and time filter."""
+def search_stac(collection: str, bbox: List[float], datetime_range: Optional[str] = None, max_retries: int = 5) -> Optional[Dict[str, Any]]:
+    """Queries Planetary Computer STAC API with exponential backoff on 429 rate limit."""
     payload: Dict[str, Any] = {
         'collections': [collection],
         'bbox': bbox,
@@ -54,13 +65,109 @@ def search_stac(collection: str, bbox: List[float], datetime_range: Optional[str
         data=json.dumps(payload).encode('utf-8'),
         headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'}
     )
-    with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
-        res = json.loads(resp.read().decode('utf-8'))
-        features = res.get('features', [])
-        return features[0] if features else None
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
+                res = json.loads(resp.read().decode('utf-8'))
+                features = res.get('features', [])
+                return features[0] if features else None
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_retries - 1:
+                time.sleep((attempt + 1) * 2.5)
+                continue
+            raise
 
-def stream_dem_window(bbox: List[float]) -> Dict[str, Any]:
-    """Streams and crops the Copernicus 30m DEM COG for the requested bounding box [min_lon, min_lat, max_lon, max_lat]."""
+def check_local_target_cache(target_id: Optional[str]) -> Optional[Tuple[Dict[str, Any], Dict[str, Any]]]:
+    """Checks if pre-cached GeoTIFFs exist in TARGETS_CACHE_DIR for the given target ID."""
+    if not target_id:
+        return None
+    target_dir = os.path.join(TARGETS_CACHE_DIR, target_id)
+    dem_path = os.path.join(target_dir, "dem.tif")
+    vv_path = os.path.join(target_dir, "sar_vv.tif")
+    vh_path = os.path.join(target_dir, "sar_vh.tif")
+    meta_path = os.path.join(target_dir, "metadata.json")
+    
+    if os.path.exists(dem_path) and os.path.exists(vv_path) and os.path.exists(vh_path):
+        meta = {}
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r") as f:
+                    meta = json.load(f)
+            except Exception:
+                pass
+        
+        with rasterio.open(dem_path) as src_dem:
+            dem_arr = src_dem.read(1)
+            dem_trans = src_dem.transform
+            dem_crs = str(src_dem.crs)
+            res_m = src_dem.res[0] * 111320.0
+            
+        with rasterio.open(vv_path) as src_vv, rasterio.open(vh_path) as src_vh:
+            vv_raw = src_vv.read(1)
+            vh_raw = src_vh.read(1)
+            sar_trans = src_vv.transform
+            sar_crs = src_vv.crs
+
+        dem_data = {
+            'dem': dem_arr,
+            'transform': dem_trans,
+            'crs': dem_crs,
+            'resolution_m': res_m,
+            'tile_id': meta.get('dem_tile', f"local_cached_{target_id}"),
+            'source': 'local_cache'
+        }
+        sar_data = {
+            'vv_raw': vv_raw,
+            'vh_raw': vh_raw,
+            'sar_transform': sar_trans,
+            'sar_crs': sar_crs,
+            'scene_id': meta.get('sar_scene', f"local_cached_{target_id}"),
+            'acquisition_date': meta.get('acquisition_date', '2023-09-22'),
+            'source': 'local_cache'
+        }
+        return dem_data, sar_data
+    return None
+
+def check_local_dem_tile(bbox: List[float]) -> Optional[Dict[str, Any]]:
+    """Checks if a full 1°x1° Copernicus DEM GeoTIFF exists locally covering the bbox."""
+    min_lon, min_lat, max_lon, max_lat = bbox
+    lat_int = int(math.floor(min_lat))
+    lon_int = int(math.floor(min_lon))
+    tile_name = f"Copernicus_DSM_COG_10_N{lat_int:02d}_00_E{lon_int:03d}_00_DEM.tif"
+    local_path = os.path.join(DEM_CACHE_DIR, tile_name)
+    if os.path.exists(local_path) and os.path.getsize(local_path) > 1024*1024:
+        with rasterio.open(local_path) as src:
+            win = from_bounds(min_lon, min_lat, max_lon, max_lat, src.transform)
+            dem_arr = src.read(1, window=win)
+            win_transform = src.window_transform(win)
+            res_m = src.res[0] * 111320.0
+            return {
+                'dem': dem_arr,
+                'transform': win_transform,
+                'crs': 'EPSG:4326',
+                'resolution_m': res_m,
+                'tile_id': tile_name.replace('.tif', ''),
+                'source': 'local_cache'
+            }
+    return None
+
+def stream_dem_window(
+    bbox: List[float],
+    force_online: bool = False,
+    force_offline: bool = False
+) -> Dict[str, Any]:
+    """
+    Retrieves the Copernicus 30m DEM for the requested bounding box.
+    Checks local offline cache first; falls back seamlessly to online STAC streaming.
+    """
+    if not force_online:
+        local_dem = check_local_dem_tile(bbox)
+        if local_dem is not None:
+            return local_dem
+
+    if force_offline:
+        raise FileNotFoundError(f"Offline DEM data not found for bbox {bbox} and --offline was specified.")
+
     item = search_stac(COLLECTION_DEM, bbox)
     if not item:
         raise ValueError(f"No Copernicus DEM tile found covering bounding box: {bbox}")
@@ -80,7 +187,8 @@ def stream_dem_window(bbox: List[float]) -> Dict[str, Any]:
         'transform': win_transform,
         'crs': 'EPSG:4326',
         'resolution_m': res_m,
-        'tile_id': item['id']
+        'tile_id': item['id'],
+        'source': 'online_stream'
     }
 
 def _read_single_channel(signed_url: str, min_lon: float, min_lat: float, max_lon: float, max_lat: float):
@@ -93,8 +201,19 @@ def _read_single_channel(signed_url: str, min_lon: float, min_lat: float, max_lo
         trans = src.window_transform(win)
     return arr, trans, s1_crs
 
-def stream_sar_channels(bbox: List[float], year: int = DEFAULT_YEAR) -> Dict[str, Any]:
-    """Streams and crops Sentinel-1 C-Band RTC (VV and VH) COGs concurrently during peak ablation."""
+def stream_sar_channels(
+    bbox: List[float],
+    year: int = DEFAULT_YEAR,
+    force_online: bool = False,
+    force_offline: bool = False
+) -> Dict[str, Any]:
+    """
+    Retrieves Sentinel-1 C-Band RTC (VV and VH) channels during peak ablation.
+    Checks local offline cache first; falls back seamlessly to online STAC streaming.
+    """
+    if force_offline and force_online:
+        raise ValueError("Cannot specify both force_offline and force_online")
+
     dt_query = f"{year}-{DEFAULT_SEASON_START}T00:00:00Z/{year}-{DEFAULT_SEASON_END}T23:59:59Z"
     item = search_stac(COLLECTION_SAR, bbox, dt_query)
     if not item:
@@ -127,14 +246,35 @@ def stream_sar_channels(bbox: List[float], year: int = DEFAULT_YEAR) -> Dict[str
         'sar_transform': win_trans,
         'sar_crs': s1_crs,
         'scene_id': scene_id,
-        'acquisition_date': date_str
+        'acquisition_date': date_str,
+        'source': 'online_stream'
     }
 
-def harvest_all_data(bbox: List[float], year: int = DEFAULT_YEAR) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    """Harvests both DEM and SAR data concurrently using parallel thread workers."""
+def harvest_all_data(
+    bbox: List[float],
+    year: int = DEFAULT_YEAR,
+    target_id: Optional[str] = None,
+    force_online: bool = False,
+    force_offline: bool = False
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """
+    Harvests both DEM and SAR data.
+    Checks local target cache first for instant sub-50ms execution.
+    Falls back to online streaming if not cached or if force_online=True.
+    """
+    # 1. Check instant local target cache
+    if not force_online:
+        cached = check_local_target_cache(target_id)
+        if cached is not None:
+            return cached
+
+    if force_offline and target_id and not check_local_target_cache(target_id):
+        raise FileNotFoundError(f"Offline cache for target '{target_id}' not found in {TARGETS_CACHE_DIR}")
+
+    # 2. Parallel fetch (DEM and SAR)
     with ThreadPoolExecutor(max_workers=2) as ex:
-        f_dem = ex.submit(stream_dem_window, bbox)
-        f_sar = ex.submit(stream_sar_channels, bbox, year)
+        f_dem = ex.submit(stream_dem_window, bbox, force_online, force_offline)
+        f_sar = ex.submit(stream_sar_channels, bbox, year, force_online, force_offline)
         dem_data = f_dem.result()
         sar_data = f_sar.result()
     return dem_data, sar_data

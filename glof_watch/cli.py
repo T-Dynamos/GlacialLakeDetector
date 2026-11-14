@@ -112,6 +112,14 @@ def main():
         action="store_true",
         help="Run parallel detection across all 10 presets (focused + regional)"
     )
+    group.add_argument(
+        "--download-offline",
+        nargs="?",
+        const="all",
+        default=None,
+        choices=["all", "presets", "dem"],
+        help="Download and cache data to offline disk (/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE)"
+    )
     
     parser.add_argument("--name", type=str, default="User_AOI", help="Descriptive name for custom bounding box")
     parser.add_argument("--basin", type=str, default="Trans-Himalayan Basin", help="Basin or river name")
@@ -120,8 +128,22 @@ def main():
     parser.add_argument("--out", type=str, default="detected_lakes.geojson", help="Output GeoJSON path")
     parser.add_argument("--plot", type=str, nargs="?", const="AUTO", default=None, help="Generate 4-panel diagnostic plot (optional path)")
     parser.add_argument("--step-log", action="store_true", help="Print explicit step-by-step console logs with timestamps instead of single-line progress bar")
+    parser.add_argument("--offline", action="store_true", help="Force offline mode using local cache directory")
+    parser.add_argument("--online", action="store_true", help="Force online mode streaming directly from STAC API")
 
     args = parser.parse_args()
+
+    # --- Mode -1: Download Offline Data ---
+    if args.download_offline:
+        from .downloader import cache_all_presets, download_regional_dem_tiles
+        if args.download_offline == "dem":
+            download_regional_dem_tiles()
+        elif args.download_offline == "presets":
+            cache_all_presets(year=args.year)
+        else: # "all"
+            download_regional_dem_tiles()
+            cache_all_presets(year=args.year)
+        return
 
     # --- Mode 0: List Prebuilt Targets ---
     if args.list_targets:
@@ -148,7 +170,13 @@ def main():
 
         console.print(f"\n[bold yellow]🚀 Launching Parallel Detection across {batch_title} ({args.workers} workers)...[/bold yellow]\n")
         
-        results = run_multithreaded_pipeline(targets_list, year=args.year, max_workers=args.workers)
+        results = run_multithreaded_pipeline(
+            targets_list,
+            year=args.year,
+            max_workers=args.workers,
+            force_online=args.online,
+            force_offline=args.offline
+        )
         
         with open(args.out, "w") as f:
             json.dump(results["unified_geojson"], f, indent=2)
@@ -218,7 +246,10 @@ def main():
             verbose=True,
             plot_out=plot_path,
             progress=None,
-            task_id=None
+            task_id=None,
+            target_id=args.target,
+            force_online=args.online,
+            force_offline=args.offline
         )
     else:
         with Progress(
@@ -238,7 +269,10 @@ def main():
                 verbose=False,
                 plot_out=plot_path,
                 progress=progress,
-                task_id=task_id
+                task_id=task_id,
+                target_id=args.target,
+                force_online=args.online,
+                force_offline=args.offline
             )
 
     with open(args.out, "w") as f:

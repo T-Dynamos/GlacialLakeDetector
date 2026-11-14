@@ -47,3 +47,8 @@ venv.bak/
 tmp/
 .cache/
 .pytest_cache/
+detected_lakes*
+data/*test*
+data/*offline*
+
+

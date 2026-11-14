@@ -21,10 +21,11 @@
 4. [Modular Subagent Structure](#4-modular-subagent-structure)
 5. [Prebuilt Targets Catalog (`targets.json`)](#5-prebuilt-targets-catalog-targetsjson)
 6. [Installation & Requirements](#6-installation--requirements)
-7. [Command-Line Interface (CLI) Guide](#7-command-line-interface-cli-guide)
-8. [Python API Quickstart](#8-python-api-quickstart)
-9. [Validation Benchmarks & Results](#9-validation-benchmarks--results)
-10. [Remote Sensing APIs & Design Decisions](#10-remote-sensing-apis--design-decisions)
+7. [Dual Storage Architecture: Instant Offline Mode vs. Live Online Streaming](#7-dual-storage-architecture-instant-offline-mode-vs-live-online-streaming)
+8. [Command-Line Interface (CLI) Guide](#8-command-line-interface-cli-guide)
+9. [Python API Quickstart](#9-python-api-quickstart)
+10. [Validation Benchmarks & Results](#10-validation-benchmarks--results)
+11. [Remote Sensing APIs & Design Decisions](#11-remote-sensing-apis--design-decisions)
 
 ---
 
@@ -206,40 +207,59 @@ pip install -r requirements.txt
 
 ---
 
-## 7. Command-Line Interface (CLI) Guide
+## 7. Dual Storage Architecture: Instant Offline Mode vs. Live Online Streaming
 
-### List All Prebuilt Targets
+GLOF-Watch supports a hybrid dual-mode architecture:
+* **Online Cloud Streaming Mode (Default):** Streams windowed Cloud-Optimized GeoTIFFs (COGs) on-the-fly from Microsoft Planetary Computer STAC via HTTP range requests. Ideal for lightweight runs anywhere on Earth without downloading raw datasets.
+* **Instant Offline Disk Mode:** Reads pre-cached GeoTIFFs directly from local high-speed storage (`/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE` or customized via `GLOF_DATA_DIR` environment variable).
+
+### Performance Comparison:
+| Metric | Online STAC Streaming | Offline Local Disk Cache | Acceleration |
+| :--- | :--- | :--- | :--- |
+| **Gya Glacial Lake ($16\text{ km}^2$)** | $10.75\text{ s} - 27.69\text{ s}$ | **$0.11\text{ s}$** | **$100\times - 250\times$ faster** |
+| **Upper Indus Corridor ($900\text{ km}^2$)** | $261.9\text{ s}$ | **$1.77\text{ s}$** | **$147\times$ faster** |
+| **All 6 Focused Lakes (Batch Run)** | $36.59\text{ s}$ | **$0.46\text{ s}$** | **$79\times$ faster** |
+| **Network Dependency** | Active Internet Required | **Zero Network Needed** | Completely offline |
+
+### Pre-downloading Offline Data:
+```bash
+# Ingest all prebuilt targets into /run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE
+python3 -m glof_watch.cli --download-offline presets
+
+# Ingest all 1°x1° Copernicus DEM tiles covering Ladakh & Karakoram
+python3 -m glof_watch.cli --download-offline dem
+```
+
+---
+
+## 8. Command-Line Interface (CLI) Guide
+
+### 1. List All Prebuilt Targets
 ```bash
 python3 -m glof_watch.cli -l
 ```
 
-### Run Single Focused Target with 4-Panel Plot
+### 2. Run Instant Offline Detection (Sub-Second Latency)
 ```bash
-python3 -m glof_watch.cli --target gya --plot AUTO --out data/gya_detected.geojson
+python3 -m glof_watch.cli --target gya --offline --step-log
 ```
 
-### Run with Explicit Step-by-Step Mission Logging
+### 3. Run Live Online Streaming Detection
 ```bash
-python3 -m glof_watch.cli --target kyagar --step-log
-```
-*Console output:*
-```
-▶ Commencing Step-by-Step Mission Execution:
-▶ [02:28:47] [Step 1/6] Querying STAC APIs & Streaming Copernicus DEM + Sentinel-1 RTC...
-▶ [02:28:58] [Step 1/6] Data Ingestion Complete: DEM (144x108) & SAR COGs (10.69s)
-▶ [02:28:58] [Step 2/6] Computing DEM Topographic Slope Gradient (dx, dy)...
-▶ [02:28:58] [Step 2/6] Topographic Slope Computed (Max: 57.7°, 0.0s)
-▶ [02:28:58] [Step 3/6] Warping Dual-Pol SAR (VV + VH) & Calibrating Decibels...
-▶ [02:28:58] [Step 3/6] SAR Channels Warped & Calibrated (0.04s)
-▶ [02:28:58] [Step 4/6] Applying Radar Specularity & DEM Slope Shield (Slope ≤ 8°)...
-▶ [02:28:58] [Step 4/6] Water Extracted & Cliff Shadows Eliminated (0.01s)
-▶ [02:28:58] [Step 5/6] Vectorizing Lakes & Calculating GLOF Hazard Metrics...
-▶ [02:28:58] [Step 5/6] Vectorized 1 Lakes (4.59 ha clean water)
-▶ [02:28:58] [Step 6/6] Mission Telemetry Synthesized: 1 lakes, 4.59 ha in 10.75s
-✔ COMPLETE: Gya Glacial Lake in 10.75s -> 1 lakes (4.59 ha) | Shadows Cut: 67.8%
+python3 -m glof_watch.cli --target gya --online --step-log --plot AUTO
 ```
 
-### Scan a Custom Bounding Box Anywhere on Earth
+### 4. Large-Area Regional Scan (Offline 900 km² in 1.77 seconds!)
+```bash
+python3 -m glof_watch.cli --target upper_indus_regional --offline --plot AUTO
+```
+
+### 5. Multi-Threaded Batch Run Across All Focused Lakes
+```bash
+python3 -m glof_watch.cli --all-focused --offline --workers 6 --out data/all_focused.geojson
+```
+
+### 6. Scan a Custom Bounding Box Anywhere on Earth
 ```bash
 python3 -m glof_watch.cli \
   --bbox 77.595 33.605 77.635 33.635 \
@@ -248,19 +268,9 @@ python3 -m glof_watch.cli \
   --plot AUTO
 ```
 
-### Multi-Threaded Batch Run Across All Focused Lakes
-```bash
-python3 -m glof_watch.cli --all-focused --workers 4 --out data/all_focused.geojson
-```
-
-### Multi-Threaded Batch Run Across All Regional Corridors (~3,600 km²)
-```bash
-python3 -m glof_watch.cli --all-regional --workers 4 --out data/all_regional.geojson
-```
-
 ---
 
-## 8. Python API Quickstart
+## 9. Python API Quickstart
 
 ### Single Target Detection:
 ```python
@@ -297,7 +307,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ---
 
-## 9. Validation Benchmarks & Results
+## 10. Validation Benchmarks & Results
 
 ### Visual Benchmark 1: Large Regional Scan ($900\text{ km}^2$ Upper Indus Corridor)
 ![Large Regional Scan](assets/large_regional_detection_plot.png)
@@ -317,7 +327,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ---
 
-## 10. Remote Sensing APIs & Design Decisions
+## 11. Remote Sensing APIs & Design Decisions
 
 | Component | Technical Implementation | Rationale |
 | :--- | :--- | :--- |

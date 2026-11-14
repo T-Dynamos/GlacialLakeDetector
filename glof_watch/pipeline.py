@@ -31,10 +31,14 @@ def run_detection_for_bbox(
     verbose: bool = True,
     plot_out: Optional[str] = None,
     progress: Optional[Progress] = None,
-    task_id: Optional[Any] = None
+    task_id: Optional[Any] = None,
+    target_id: Optional[str] = None,
+    force_online: bool = False,
+    force_offline: bool = False
 ) -> Dict[str, Any]:
     """
     Executes the end-to-end GLOF-Watch detection pipeline for a single bounding box.
+    Supports offline local disk cache and online STAC streaming.
     Prints explicit step-by-step progress at each stage.
     """
     t0 = time.time()
@@ -50,14 +54,22 @@ def run_detection_for_bbox(
 
     # Step 1: Ingest & Stream Copernicus DEM and Sentinel-1 C-band RTC
     t_step = time.time()
-    log_step(1, "Querying STAC APIs & Streaming Copernicus DEM + Sentinel-1 RTC...", advance=0)
-    dem_data, sar_data = harvest_all_data(bbox, year=year)
+    log_step(1, "Acquiring Copernicus DEM + Sentinel-1 RTC Data (Offline Cache / STAC)...", advance=0)
+    dem_data, sar_data = harvest_all_data(
+        bbox,
+        year=year,
+        target_id=target_id,
+        force_online=force_online,
+        force_offline=force_offline
+    )
     dem_arr = dem_data['dem']
     res_m = dem_data['resolution_m']
     target_shape = dem_arr.shape
     dem_transform = dem_data['transform']
     dem_crs = dem_data['crs']
-    log_step(1, f"Data Ingestion Complete: DEM ({dem_arr.shape[1]}x{dem_arr.shape[0]}) & SAR COGs ({round(time.time() - t_step, 2)}s)", advance=1)
+    
+    src_tag = "[OFFLINE DISK]" if dem_data.get('source') == 'local_cache' else "[ONLINE STREAM]"
+    log_step(1, f"Data Acquired: DEM ({dem_arr.shape[1]}x{dem_arr.shape[0]}) & SAR COGs ({round(time.time() - t_step, 2)}s) {src_tag}", advance=1)
 
     # Step 2: Compute DEM Slope Gradient
     t_step = time.time()
@@ -152,7 +164,9 @@ def run_detection_for_bbox(
 def run_multithreaded_pipeline(
     targets: List[Dict[str, Any]],
     year: int = 2023,
-    max_workers: int = 4
+    max_workers: int = 4,
+    force_online: bool = False,
+    force_offline: bool = False
 ) -> Dict[str, Any]:
     """
     Executes the detection pipeline across multiple bounding box targets concurrently using a ThreadPool
@@ -185,7 +199,10 @@ def run_multithreaded_pipeline(
                     False,
                     None,
                     progress,
-                    target_tasks[target.get('name', f"Target_{i+1}")]
+                    target_tasks[target.get('name', f"Target_{i+1}")],
+                    target.get('id'),
+                    force_online,
+                    force_offline
                 ): target for i, target in enumerate(targets)
             }
             for future in as_completed(future_map):

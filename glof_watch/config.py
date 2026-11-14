@@ -30,6 +30,18 @@ MIN_LAKE_AREA_HA = 0.35          # Minimum cluster size (3,500 m²) to eliminate
 # Path to Streamlined Targets JSON
 TARGETS_JSON_PATH = os.path.join(os.path.dirname(__file__), "targets.json")
 
+# Offline Local Data Storage (Option 2)
+DEFAULT_OFFLINE_DIR = "/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE"
+LOCAL_DATA_DIR = os.environ.get("GLOF_DATA_DIR", DEFAULT_OFFLINE_DIR)
+DEM_CACHE_DIR = os.path.join(LOCAL_DATA_DIR, "dem")
+SAR_CACHE_DIR = os.path.join(LOCAL_DATA_DIR, "sar")
+TARGETS_CACHE_DIR = os.path.join(LOCAL_DATA_DIR, "targets_cache")
+
+def ensure_cache_dirs():
+    """Ensures offline cache directories exist."""
+    for d in (DEM_CACHE_DIR, SAR_CACHE_DIR, TARGETS_CACHE_DIR):
+        os.makedirs(d, exist_ok=True)
+
 def load_targets() -> Dict[str, Any]:
     """Loads all focused lakes and large regional scan areas from targets.json."""
     if os.path.exists(TARGETS_JSON_PATH):

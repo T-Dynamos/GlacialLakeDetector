@@ -1,0 +1,13 @@
+Parameter,Value,Unit,Notes
+2017 Proglacial Lake Area,24.66,ha,Baseline Sentinel-1 (10 Sep 2017)
+2020 Proglacial Lake Area,20.23,ha,Mid-period benchmark (12 Sep 2020)
+2023 Proglacial Lake Area,15.94,ha,Expansion benchmark (03 Sep 2023)
+2024 Proglacial Lake Area,17.40,ha,Current extent (09 Sep 2024)
+Net 7-Year Lake Expansion (ΔA),-7.26,ha,2017 to 2024 net surface growth
+Relative Lake Expansion (%),-29.44%,%,Multi-year proportional growth
+Annual Growth Rate,-1.04,ha/yr,Mean annualized expansion rate
+Glacier Calving Terminus Recession,120.0,m,Southwestward retreat of calving front
+2017 Lake Perimeter,14760.0,m,Baseline shoreline perimeter
+2024 Lake Perimeter,11160.0,m,Current shoreline perimeter
+Proglacial Lake Elevation,4170,m a.s.l.,Copernicus GLO-30 DSM at lake contact
+Pensi La Pass Distance,3.5,km,Distance from proglacial lake to Pensi La road

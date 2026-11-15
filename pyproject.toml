@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "glof-watch"
+name = "GlacialLakeDetector"
 version = "3.1.0"
 authors = [
   { name = "Team Prob-ution (Leh, Ladakh)", email = "anshdadwal298@gmail.com" },
@@ -27,6 +27,9 @@ dependencies = [
 ]
 
 [project.scripts]
+glacial-lake-detector = "glof_watch.cli:main"
+glaciallakedetector = "glof_watch.cli:main"
+glacial-lake-detector-gui = "glof_watch.ui.app:main"
 glof-watch = "glof_watch.cli:main"
 glof-watch-gui = "glof_watch.ui.app:main"
 

@@ -266,7 +266,7 @@ def plot_detection_results(
 
     zoom_subtitle = " [High-Resolution Basin Zoom & Active-Contour Shorelines Enabled]" if zoomed else ""
     plt.suptitle(
-        f"GLOF-Watch High-Resolution Satellite Diagnostic: {name}{zoom_subtitle}\nBasin: {basin} | NASA Space Apps Challenge 2026",
+        f"GlacialLakeDetector High-Resolution Satellite Diagnostic: {name}{zoom_subtitle}\nBasin: {basin} | NASA Space Apps Challenge 2026",
         fontsize=14.0, fontweight='bold'
     )
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
@@ -360,7 +360,7 @@ def render_satellite_shoreline_view(
     ax.ticklabel_format(useOffset=False, style='plain')
     ax.grid(True, linestyle=':', alpha=0.45, color='gray')
     ax.set_title(
-        f"GLOF-Watch Satellite Shoreline View: {name} ({basin})\n{sat_tag} (Cyan = Active-Contour Water Extent)",
+        f"GlacialLakeDetector Satellite Shoreline View: {name} ({basin})\n{sat_tag} (Cyan = Active-Contour Water Extent)",
         fontsize=12.0, fontweight='bold', pad=10
     )
     plt.savefig(output_path, dpi=300, bbox_inches='tight')

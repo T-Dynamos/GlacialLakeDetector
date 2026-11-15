@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 compare_target_areas.py
-Automated Target Area Verification and Benchmark Comparison Engine for GLOF-Watch.
+Automated Target Area Verification and Benchmark Comparison Engine for GlacialLakeDetector.
 NASA Space Apps Challenge 2026 - Dancing with the SARs.
 
 Executes the automated detection and segmentation algorithm across all benchmark targets,
@@ -200,7 +200,7 @@ def run_single_comparison(target_id: str, force_offline: bool = True) -> Dict[st
         "gsi_score": gsi_score,
         "runtime_s": round(runtime, 3),
         "status": status_tag,
-        "citation": gt.get("citation", "GLOF-Watch Satellite Radar Engine")
+        "citation": gt.get("citation", "GlacialLakeDetector Satellite Radar Engine")
     }
 
 
@@ -227,7 +227,7 @@ def print_rich_table(results: List[Dict[str, Any]]):
     Renders a formatted terminal comparison table.
     """
     table = Table(
-        title="GLOF-Watch Algorithm Benchmark: Known vs. Calculated Glacial Lake Areas",
+        title="GlacialLakeDetector Algorithm Benchmark: Known vs. Calculated Glacial Lake Areas",
         show_header=True,
         header_style="bold cyan",
         border_style="blue"
@@ -292,7 +292,7 @@ def export_markdown_report(results: List[Dict[str, Any]], output_path: str):
     """
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     lines = [
-        "# GLOF-Watch Glacial Lake Area Verification & Benchmark Audit",
+        "# GlacialLakeDetector Glacial Lake Area Verification & Benchmark Audit",
         "",
         "**Investigation:** Automated Radar-DEM Lake Detection vs. Verified Ground-Truth Baselines  ",
         "**Sensor Constellation:** Sentinel-1 C-Band RTC (5.405 GHz) + Copernicus GLO-30 DEM  ",
@@ -328,7 +328,7 @@ def export_markdown_report(results: List[Dict[str, Any]], output_path: str):
             f"- **Geomorphological Classification:** {r['lake_type']}",
             f"- **Basin Location:** {r['basin']}",
             f"- **Ground-Truth Baseline:** {r['known_total_ha']:.2f} ha (Primary Lake: {r['known_primary_ha']:.2f} ha, Baseline Catalog: {r['catalog_baseline_ha']:.2f} ha)",
-            f"- **GLOF-Watch Calculation:** {r['calculated_total_ha']:.2f} ha (Primary Lake: {r['calculated_primary_ha']:.2f} ha, Count: {r['lake_count']})",
+            f"- **GlacialLakeDetector Calculation:** {r['calculated_total_ha']:.2f} ha (Primary Lake: {r['calculated_primary_ha']:.2f} ha, Count: {r['lake_count']})",
             f"- **Planimetric Agreement:** **{r['agreement_pct']:.1f}%** (Delta: {r['delta_total_ha']:+0.2f} ha, Variance: {r['variance_pct']:+0.1f}%)",
             f"- **Topographic Elevation:** {r['calculated_elevation_m']:.0f} m (Ground Truth: {r['known_elevation_m']:.0f} m, Delta: {r['elevation_delta_m']:+0.0f} m)",
             f"- **Hazard Risk Level:** `{r['risk_level']}` (GSI Score: {r['gsi_score']:.3f})",
@@ -375,7 +375,7 @@ def export_csv_report(results: List[Dict[str, Any]], output_path: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="GLOF-Watch: Automated Target Area Verification and Benchmark Comparison"
+        description="GlacialLakeDetector: Automated Target Area Verification and Benchmark Comparison"
     )
     parser.add_argument(
         "--target", "-t",
@@ -415,7 +415,7 @@ def main():
         targets = list(TARGET_GROUND_TRUTH_BASELINES.keys())
 
     console.print("[bold cyan]==================================================================[/bold cyan]")
-    console.print("[bold white]GLOF-Watch Benchmark Area Verification: Known vs. Calculated[/bold white]")
+    console.print("[bold white]GlacialLakeDetector Benchmark Area Verification: Known vs. Calculated[/bold white]")
     console.print(f"[dim]Targets to process: {', '.join(targets)} | Offline Cache: {force_offline}[/dim]")
     console.print("[bold cyan]==================================================================[/bold cyan]\n")
 

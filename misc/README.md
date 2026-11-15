@@ -1,6 +1,6 @@
-# GLOF-Watch Miscellaneous Scripts & Forensic Archive
+# GlacialLakeDetector Miscellaneous Scripts & Forensic Archive
 
-This directory archives supplementary data generation scripts, pre-processing utilities, and granular forensic validation artifacts developed during the scientific validation gates of Project GLOF-Watch.
+This directory archives supplementary data generation scripts, pre-processing utilities, and granular forensic validation artifacts developed during the scientific validation gates of Project GlacialLakeDetector.
 
 ---
 

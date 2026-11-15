@@ -34,7 +34,7 @@ class TestAppIntegration(unittest.TestCase):
         """Verifies MD3 Dark theme, teal accents, and title."""
         self.assertEqual(self.app.theme_cls.theme_style, "Dark")
         self.assertEqual(self.app.theme_cls.primary_palette, "Teal")
-        self.assertIn("GLOF-WATCH", self.app.title)
+        self.assertIn("GlacialLakeDetector", self.app.title)
         self.assertIsNotNone(self.root)
 
     def test_02_screen_manager_composition(self):

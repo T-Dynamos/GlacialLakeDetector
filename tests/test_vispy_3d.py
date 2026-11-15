@@ -322,7 +322,7 @@ def test_launch_interactive_vispy_window_background_process():
         dem_arr=dem,
         lake_mask=mask,
         size=(640, 480),
-        title="GLOF-Watch Isolated 3D Test",
+        title="GlacialLakeDetector Isolated 3D Test",
         run_in_background=True
     )
     try:

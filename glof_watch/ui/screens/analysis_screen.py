@@ -624,7 +624,7 @@ class AnalysisScreen(MDScreen):
 
         self.log_scroll = ScrollView(size_hint=(1, 1))
         self.lbl_terminal_log = MDLabel(
-            text="[GLOF-WATCH Engine Initialized]\nAwaiting mission deployment...",
+            text="[GlacialLakeDetector Engine Initialized]\nAwaiting mission deployment...",
             adaptive_height=True,
             font_style="Body",
             role="small"
@@ -1136,7 +1136,7 @@ class AnalysisScreen(MDScreen):
             dem_arr=self.dem_arr,
             lake_mask=self.lake_mask,
             bbox=self.current_bbox,
-            title=f"GLOF-Watch 3D Orbit: {self.target_name}",
+            title=f"GlacialLakeDetector 3D Orbit: {self.target_name}",
             satellite_img=self.satellite_img,
             run_in_background=True
         )

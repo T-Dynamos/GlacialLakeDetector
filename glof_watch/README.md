@@ -1,4 +1,4 @@
-# GLOF-Watch: Automated Glacial Lake Detection & Hazard Assessment Engine
+# GlacialLakeDetector: Automated Glacial Lake Detection & Hazard Assessment Engine
 
 **NASA Space Apps Challenge 2026** – *"Dancing with the SARs"*  
 **Track:** Earth Science / Radar Remote Sensing  
@@ -23,7 +23,7 @@ While historical government catalogs (such as ISRO's NRSC Indus Basin Atlas with
 
 ## 2. The Core Solution: Multi-Temporal Radar-DEM Fusion
 
-**GLOF-Watch** solves these challenges by fusing **Synthetic Aperture Radar (SAR)** from Sentinel-1 and NISAR with **Copernicus 30m Global DEMs (GLO-30)** into a fully automated, cloud-native detection engine:
+**GlacialLakeDetector** solves these challenges by fusing **Synthetic Aperture Radar (SAR)** from Sentinel-1 and NISAR with **Copernicus 30m Global DEMs (GLO-30)** into a fully automated, cloud-native detection engine:
 * **All-Weather, Day-and-Night Sensing:** Radar microwaves ($5.4\text{ GHz}$ C-band and $1.25\text{ GHz}$ L-band) pierce through monsoon clouds, smoke, and mountain darkness.
 * **Topographic Slope Shielding:** Uses local DEM terrain slope ($\nabla z \le 8^\circ$) to eliminate **$> 98\%$ of false-positive mountain radar shadows**.
 * **Full-Year Temporal Minimum Compositing ($\sigma^0_{\text{min}}$):** Ingests all radar passes across the ablation season to discover the **True Maximum Storage Capacity (High-Water Mark)**.
@@ -146,11 +146,11 @@ glof_watch/
 
 ### A. Why Cloud-Optimized GeoTIFFs (COGs) instead of Full Downloads?
 * *The Problem:* A single Sentinel-1 scene is **$1.0\text{ GB}$ to $1.5\text{ GB}$** as a zipped SAFE archive. Downloading full scenes for multiple basins in a 48-hour hackathon wastes hours of bandwidth and saturates disk storage.
-* *The Solution:* Planetary Computer hosts Sentinel-1 RTC as Cloud-Optimized GeoTIFFs (COGs). By issuing HTTP Range requests using `rasterio.windows.from_bounds()`, GLOF-Watch streams **only the exact pixels within the bounding box** (a few megabytes), reducing latency from minutes to **$< 20\text{ seconds}$**!
+* *The Solution:* Planetary Computer hosts Sentinel-1 RTC as Cloud-Optimized GeoTIFFs (COGs). By issuing HTTP Range requests using `rasterio.windows.from_bounds()`, GlacialLakeDetector streams **only the exact pixels within the bounding box** (a few megabytes), reducing latency from minutes to **$< 20\text{ seconds}$**!
 
 ### B. Why C-Band SAR + DEM Slope instead of Deep Learning / Optical?
 * *The Problem:* Deep learning models (U-Net, SegNet) on satellite imagery require tens of thousands of manually labeled masks, fail when tested on different mountain ranges, and optical models fail under cloud cover.
-* *The Solution:* GLOF-Watch is rooted in **deterministic radar and gravitational physics**:
+* *The Solution:* GlacialLakeDetector is rooted in **deterministic radar and gravitational physics**:
   1. Water reflects radar microwaves like a mirror (specular scatterer, $\sigma^0 < -15\text{ dB}$).
   2. Water cannot pool on mountain cliffs ($\text{Slope} \le 8^\circ$).
   This physics-first approach achieves **$98.8\%$ false-positive shadow suppression** with zero training data required.

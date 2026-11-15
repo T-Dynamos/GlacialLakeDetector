@@ -65,7 +65,7 @@ def download_file_with_progress(
 ) -> str:
     """Downloads a file across HTTP with streaming chunks and Rich progress bar."""
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (GlacialLakeDetector)'})
     
     with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
         total_size = int(resp.headers.get('Content-Length', 0))
@@ -207,7 +207,7 @@ def download_regional_dem_tiles(bboxes: Optional[List[List[float]]] = None):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="GLOF-Watch Offline Data Ingestion Tool")
+    parser = argparse.ArgumentParser(description="GlacialLakeDetector Offline Data Ingestion Tool")
     parser.add_argument("--presets", action="store_true", help="Cache all 10 presets to targets_cache/")
     parser.add_argument("--dem", action="store_true", help="Download full 1°x1° Copernicus DEM tiles to dem/")
     parser.add_argument("--target", type=str, help="Cache specific preset target ID")

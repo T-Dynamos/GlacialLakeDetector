@@ -38,7 +38,7 @@ _SSL_CTX = ssl._create_unverified_context()
 def sign_asset_url(href: str, max_retries: int = 5) -> str:
     """Signs a Planetary Computer blob storage asset URL with a SAS token, with exponential backoff on 429."""
     url = f"{SAS_SIGN_URL}?href={urllib.parse.quote(href)}"
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (GlacialLakeDetector)'})
     for attempt in range(max_retries):
         try:
             with urllib.request.urlopen(req, context=_SSL_CTX) as resp:
@@ -63,7 +63,7 @@ def search_stac(collection: str, bbox: List[float], datetime_range: Optional[str
     req = urllib.request.Request(
         STAC_API_URL,
         data=json.dumps(payload).encode('utf-8'),
-        headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'}
+        headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GlacialLakeDetector)'}
     )
     for attempt in range(max_retries):
         try:
@@ -355,7 +355,7 @@ def get_satellite_backdrop(
         req = urllib.request.Request(
             STAC_API_URL,
             data=json.dumps(payload).encode('utf-8'),
-            headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GLOF-Watch)'}
+            headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (GlacialLakeDetector)'}
         )
         with urllib.request.urlopen(req, context=_SSL_CTX, timeout=8) as resp:
             data = json.loads(resp.read().decode('utf-8'))

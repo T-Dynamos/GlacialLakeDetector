@@ -1,6 +1,6 @@
 """
 glof_watch.cli
-Production Command Line Interface for GLOF-Watch.
+Production Command Line Interface for GlacialLakeDetector.
 Includes high-performance progress bars, rich colored console reporting,
 streamlined JSON target presets, and automated diagnostic plotting.
 """
@@ -21,7 +21,7 @@ console = Console()
 def list_prebuilt_targets():
     """Prints clean formatted tables of all prebuilt targets from targets.json."""
     console.print(Panel.fit(
-        "[bold cyan]GLOF-WATCH PREBUILT TARGET CATALOG (targets.json)[/bold cyan]\n"
+        "[bold cyan]GLACIALLAKEDETECTOR PREBUILT TARGET CATALOG (targets.json)[/bold cyan]\n"
         "[italic]Validated cryospheric basins and large regional corridors across Ladakh & Karakoram[/italic]",
         border_style="cyan"
     ))
@@ -75,7 +75,7 @@ def list_prebuilt_targets():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="GLOF-Watch: Automated Glacial Lake Detection from Bounding Box via SAR & DEM"
+        description="GlacialLakeDetector: Automated Glacial Lake Detection from Bounding Box via SAR & DEM"
     )
     
     group = parser.add_mutually_exclusive_group(required=True)
@@ -162,7 +162,7 @@ def main():
         return
 
     console.print(Panel.fit(
-        "[bold cyan]GLOF-WATCH: RADAR-DEM GLACIAL LAKE DETECTION ENGINE[/bold cyan]\n"
+        "[bold cyan]GLACIALLAKEDETECTOR: RADAR-DEM GLACIAL LAKE DETECTION ENGINE[/bold cyan]\n"
         "[italic]NASA Space Apps Challenge 2026 • Team Prob-ution (Leh, Ladakh)[/italic]",
         border_style="cyan"
     ))

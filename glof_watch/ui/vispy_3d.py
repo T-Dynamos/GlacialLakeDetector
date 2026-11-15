@@ -257,7 +257,7 @@ def create_3d_terrain_scene(
     bgcolor: Any = "#0e1117",
     interactive: bool = False,
     show: bool = False,
-    title: str = "GLOF-Watch 3D Terrain Explorer",
+    title: str = "GlacialLakeDetector 3D Terrain Explorer",
     satellite_img: Optional[np.ndarray] = None
 ) -> Tuple[scene.SceneCanvas, scene.ViewBox, Dict[str, Any]]:
     """
@@ -725,7 +725,7 @@ def launch_interactive_vispy_window(
     dem_arr: Optional[np.ndarray] = None,
     lake_mask: Optional[np.ndarray] = None,
     bbox: Optional[List[float]] = None,
-    title: str = "GLOF-Watch 3D Terrain Explorer",
+    title: str = "GlacialLakeDetector 3D Terrain Explorer",
     size: Tuple[int, int] = (1280, 720),
     elevation: float = 35.0,
     azimuth: float = 45.0,

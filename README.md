@@ -1,4 +1,4 @@
-# GLOF-Watch: Automated Glacial Lake Detection & Hazard Assessment Engine
+# GlacialLakeDetector: Automated Glacial Lake Detection & Hazard Assessment Engine
 
 [![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/)
 [![Challenge Track](https://img.shields.io/badge/Track-Dancing%20with%20the%20SARs-teal.svg)](https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/?tab=details)
@@ -64,7 +64,7 @@ Radar Pulse Wavefront ───────►
 ```
 
 * **The Problem:** Steep backslopes facing away from side-looking radar bounce zero microwave energy back to the antenna. Their backscatter plunges below $-20\text{ dB}$, perfectly mimicking calm specular water. Naive radar thresholding produces **thousands of hectares of false-positive lakes on vertical rock cliffs**!
-* **The GLOF-Watch Innovation (Topographic DEM Slope Shield):**
+* **The GlacialLakeDetector Innovation (Topographic DEM Slope Shield):**
   Liquid water is governed by Newtonian gravity and cannot pool on steep terrain. By computing the local DEM gradient $\theta = \arctan(\sqrt{dx^2 + dy^2})$, we enforce an absolute geomorphological constraint:
   $$\text{Standing Liquid Water Exists} \iff \theta_{\text{slope}} \le 8.0^\circ \quad \text{and} \quad z_{\text{elev}} \ge 3,200\text{ m}$$
   This physics-first filter **eliminates $98.8\%$ to $100\%$ of cliff shadow false positives** without requiring brittle deep-learning weights.
@@ -73,7 +73,7 @@ Radar Pulse Wavefront ───────►
 
 ## 3. Algorithmic & Mathematical Architecture
 
-GLOF-Watch executes an end-to-end 7-step pipeline:
+GlacialLakeDetector executes an end-to-end 7-step pipeline:
 
 ```
 [Bounding Box Input: min_lon, min_lat, max_lon, max_lat]
@@ -149,7 +149,7 @@ GLOF-Watch executes an end-to-end 7-step pipeline:
 Co-polarization ($\text{VV}$) can reflect darkly on flat dry gravel riverbeds. However, cross-polarization ($\text{VH}$) is depolarized by gravel micro-texture ($\sigma^0_{\text{VH}} > -18\text{ dB}$). Pure liquid water has virtually zero depolarization ($\sigma^0_{\text{VH}} < -21\text{ dB}$). Requiring dual-pol thresholds ensures that only genuine water surfaces are extracted.
 
 ### GLOF Susceptibility Index (GSI)
-For each detected lake blob $i$, GLOF-Watch computes a hazard rating:
+For each detected lake blob $i$, GlacialLakeDetector computes a hazard rating:
 $$\text{GSI}_i = 0.5 \cdot \min\left(1.0, \frac{z_i - 3500}{2000}\right) + 0.5 \cdot \min\left(1.0, \frac{A_i}{20.0}\right)$$
 Where $z_i$ is mean elevation in meters and $A_i$ is surface area in hectares.
 
@@ -160,7 +160,7 @@ Where $z_i$ is mean elevation in meters and $A_i$ is surface area in hectares.
 The system is decoupled into single-responsibility Python modules:
 
 ```
-GLOF-Watch/
+GlacialLakeDetector/
 ├── glof_watch/             # Core algorithmic engine package
 │   ├── __init__.py         # Package entry point and clean public API
 │   ├── config.py           # Centralized physical thresholds, STAC endpoints, offline cache paths
@@ -185,7 +185,7 @@ GLOF-Watch/
 
 ## 5. Prebuilt Targets Catalog (`targets.json`)
 
-GLOF-Watch includes validated bounding boxes externalized in `targets.json`:
+GlacialLakeDetector includes validated bounding boxes externalized in `targets.json`:
 
 ### Focused Lake Benchmarks
 | ID | Target Name | Basin | Approx Elev | Historic Significance |
@@ -230,7 +230,7 @@ pip install -r requirements.txt
 
 ## 7. Dual Storage Architecture: Instant Offline Mode vs. Live Online Streaming
 
-GLOF-Watch supports a hybrid dual-mode architecture:
+GlacialLakeDetector supports a hybrid dual-mode architecture:
 * **Online Cloud Streaming Mode (Default):** Streams windowed Cloud-Optimized GeoTIFFs (COGs) on-the-fly from Microsoft Planetary Computer STAC via HTTP range requests. Ideal for lightweight runs anywhere on Earth without downloading raw datasets.
 * **Instant Offline Disk Mode:** Reads pre-cached GeoTIFFs directly from local high-speed storage (`/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE` or customized via `GLOF_DATA_DIR` environment variable).
 
@@ -293,7 +293,7 @@ python3 -m glof_watch.cli \
 
 ## 9. Interactive Desktop GUI (KivyMD & VisPy)
 
-GLOF-Watch includes a full-featured, hardware-accelerated workstation interface built on **KivyMD 2.0 (Material Design 3)**, **Kivy 3.0**, and **VisPy 0.17 (OpenGL 4.6)**.
+GlacialLakeDetector includes a full-featured, hardware-accelerated workstation interface built on **KivyMD 2.0 (Material Design 3)**, **Kivy 3.0**, and **VisPy 0.17 (OpenGL 4.6)**.
 
 ### Launching the GUI
 ```bash
@@ -381,7 +381,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ### Visual Benchmark 2: Multi-Temporal Peak Capacity Discovery (Kyagar Lake)
 ![Kyagar Lake Annual Maximum Detection](assets/kyagar_annual_maximum_detection.png)
-* **Remote Sensing Breakthrough:** Single satellite passes in spring miss lake capacity ($0.0\text{ ha}$ detected due to frozen surface ice). By taking the **temporal minimum backscatter ($\sigma^0_{\text{min}}$)** across all seasonal Sentinel-1 passes, GLOF-Watch uncovers the true maximum storage capacity: **$3.25\text{ ha}$** of impounded meltwater behind the Kyagar ice dam!
+* **Remote Sensing Breakthrough:** Single satellite passes in spring miss lake capacity ($0.0\text{ ha}$ detected due to frozen surface ice). By taking the **temporal minimum backscatter ($\sigma^0_{\text{min}}$)** across all seasonal Sentinel-1 passes, GlacialLakeDetector uncovers the true maximum storage capacity: **$3.25\text{ ha}$** of impounded meltwater behind the Kyagar ice dam!
 
 ### Visual Benchmark 3: Multi-Lake Algorithm Validation
 ![Multi-Lake Validation](assets/major_lakes_v2_validation.png)

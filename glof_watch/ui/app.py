@@ -49,7 +49,7 @@ class GLOFWatchApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.title = "GLOF-WATCH: High-Altitude Radar-DEM Engine"
+        self.title = "GlacialLakeDetector: High-Altitude Radar-DEM Engine"
         self.active_target_name = "Kyagar Ice-Dammed Lake"
         self.screen_manager: Optional[MDScreenManager] = None
         self.map_screen: Optional[MapScreen] = None
@@ -113,7 +113,7 @@ class GLOFWatchApp(MDApp):
         )
         apply_button_style(btn_logo, "action")
         lbl_title = MDLabel(
-            text="[b]GLOF-WATCH[/b] [color=#00e5ff]|[/color] High-Altitude Radar-DEM Engine",
+            text="[b]GlacialLakeDetector[/b] [color=#00e5ff]|[/color] High-Altitude Radar-DEM Engine",
             markup=True,
             font_style="Title",
             role="medium",
@@ -280,6 +280,9 @@ def main():
     app = GLOFWatchApp()
     app.run()
 
+
+# Backward and forward compatibility aliases
+GlacialLakeDetectorApp = GLOFWatchApp
 
 if __name__ == "__main__":
     main()

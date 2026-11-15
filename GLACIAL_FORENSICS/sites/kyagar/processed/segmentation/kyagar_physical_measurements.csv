@@ -1,0 +1,12 @@
+Parameter,Value,Unit,Notes
+Pre-Outburst Peak Lake Area (12 Aug 2018),27.21,ha,Peak impoundment behind Kyagar ice dam
+Post-Outburst Residual Area (24 Aug 2018),14.56,ha,Immediate post-drainage residual water
+Terminal Residual Area (17 Sep 2018),5.79,ha,Late season drained basin extent
+Net Surface Area Reduction (ΔA),21.42,ha,Total lake surface evacuated
+Drainage Fraction (%),78.72%,%,Percentage of impounded surface drained
+Estimated Flood Volume Released,4.82,MCM (10^6 m³),Based on bathymetric depth gradient (mean 22.5m)
+Outburst Initiation Window,12 Aug 01:00 to 18 Aug 12:49 UTC,UTC Window,"Constrained by S1 Orbits 34, 136, 129"
+Ice Dam Type,Surging Glacier Tongue,Type,Surge-type Kyagar Glacier damming Shaksgam River
+Ice Dam Width,1200,m,Cross-valley ice tongue contact width
+Lake Surface Elevation,4785,m a.s.l.,Copernicus GLO-30 DSM at lake surface
+Downstream River Basin,Shaksgam River -> Yarkant River,River System,Tarim Basin drainage basin

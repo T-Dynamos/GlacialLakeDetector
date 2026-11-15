@@ -14,7 +14,11 @@ Features:
   (left mouse drag rotate, right mouse drag pan, scroll wheel zoom, hotkeys R/W/L/T/Esc).
 """
 
-from typing import List, Tuple, Optional, Any, Union
+import os
+os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+os.environ.setdefault("QT_API", "pyqt6")
+
+from typing import List, Tuple, Optional, Any, Union, Dict
 import multiprocessing
 import numpy as np
 import cv2
@@ -252,7 +256,8 @@ def create_3d_terrain_scene(
     bgcolor: Any = "#0e1117",
     interactive: bool = False,
     show: bool = False,
-    title: str = "GLOF-Watch 3D Terrain Explorer"
+    title: str = "GLOF-Watch 3D Terrain Explorer",
+    satellite_img: Optional[np.ndarray] = None
 ) -> Tuple[scene.SceneCanvas, scene.ViewBox, Dict[str, Any]]:
     """
     Assembles the VisPy SceneCanvas, 3D terrain surface mesh, draped lake polygon & contours,
@@ -274,10 +279,32 @@ def create_3d_terrain_scene(
     z_3d = z_scaled[::-1, :].T  # Shape: (W, H)
     dem_norm_t = dem_norm[::-1, :].T
 
-    # Generate terrain colormapping
-    cmap = resolve_colormap(colormap)
-    norm_vals = dem_norm_t.ravel()
-    vertex_colors = cmap.map(norm_vals).astype(np.float32)
+    # Generate terrain coloring: Genuine True-Color Satellite Imagery or Colormap
+    has_sat = False
+    if satellite_img is not None:
+        try:
+            sat = np.asarray(satellite_img)
+            # If shape is (channels, H, W) e.g. (3, H, W)
+            if sat.ndim == 3 and sat.shape[0] in (3, 4) and sat.shape[2] not in (3, 4):
+                sat = np.transpose(sat[:3], (1, 2, 0))
+            if sat.ndim == 3 and sat.shape[2] >= 3:
+                sat_rgb = sat[:, :, :3].astype(np.float32)
+                if np.max(sat_rgb) > 1.0:
+                    sat_rgb = sat_rgb / 255.0
+                sat_res = cv2.resize(sat_rgb, (W, H), interpolation=cv2.INTER_LINEAR)
+                sat_res_t = sat_res[::-1, :, :].transpose(1, 0, 2)
+                vertex_colors = np.column_stack([
+                    sat_res_t.reshape(-1, 3),
+                    np.ones((W * H, 1), dtype=np.float32)
+                ]).astype(np.float32)
+                has_sat = True
+        except Exception:
+            has_sat = False
+
+    if not has_sat:
+        cmap = resolve_colormap(colormap)
+        norm_vals = dem_norm_t.ravel()
+        vertex_colors = cmap.map(norm_vals).astype(np.float32)
 
     # Match lake mask dimensions if provided
     has_lake = False
@@ -459,6 +486,85 @@ def _bind_interactive_hotkeys(canvas: scene.SceneCanvas, elements: Dict[str, Any
             canvas.update()
 
 
+def _render_3d_terrain_direct(
+    dem_arr: np.ndarray,
+    lake_mask: Optional[np.ndarray],
+    bbox: Optional[List[float]],
+    size: Tuple[int, int],
+    elevation: float,
+    azimuth: float,
+    vertical_exaggeration: float,
+    colormap: Union[str, Colormap],
+    bgcolor: Any,
+    satellite_img: Optional[np.ndarray] = None
+) -> np.ndarray:
+    """Direct in-process offscreen framebuffer rendering."""
+    canvas = None
+    try:
+        canvas, _, _ = create_3d_terrain_scene(
+            dem_arr=dem_arr,
+            lake_mask=lake_mask,
+            bbox=bbox,
+            size=size,
+            elevation=elevation,
+            azimuth=azimuth,
+            vertical_exaggeration=vertical_exaggeration,
+            colormap=colormap,
+            bgcolor=bgcolor,
+            interactive=False,
+            show=False,
+            satellite_img=satellite_img
+        )
+        rgba_img = canvas.render()
+        return np.ascontiguousarray(rgba_img, dtype=np.uint8)
+    finally:
+        if canvas is not None:
+            try:
+                canvas.close()
+            except Exception:
+                pass
+
+
+def _isolated_render_worker(
+    pipe_conn: Any,
+    dem_arr: np.ndarray,
+    lake_mask: Optional[np.ndarray],
+    bbox: Optional[List[float]],
+    size: Tuple[int, int],
+    elevation: float,
+    azimuth: float,
+    vertical_exaggeration: float,
+    colormap: str,
+    bgcolor: Any,
+    satellite_img: Optional[np.ndarray] = None
+) -> None:
+    """Worker process for completely isolated 3D offscreen rendering without Kivy GL context sharing."""
+    import os
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+    os.environ.setdefault("QT_API", "pyqt6")
+    try:
+        rgba = _render_3d_terrain_direct(
+            dem_arr=dem_arr,
+            lake_mask=lake_mask,
+            bbox=bbox,
+            size=size,
+            elevation=elevation,
+            azimuth=azimuth,
+            vertical_exaggeration=vertical_exaggeration,
+            colormap=colormap,
+            bgcolor=bgcolor,
+            satellite_img=satellite_img
+        )
+        pipe_conn.send(rgba)
+    except Exception as exc:
+        pipe_conn.send(exc)
+    finally:
+        try:
+            pipe_conn.close()
+        except Exception:
+            pass
+
+
 def render_3d_terrain_rgba(
     dem_arr: Optional[np.ndarray] = None,
     lake_mask: Optional[np.ndarray] = None,
@@ -472,6 +578,8 @@ def render_3d_terrain_rgba(
     width: Optional[int] = None,
     height: Optional[int] = None,
     dem: Optional[np.ndarray] = None,
+    satellite_img: Optional[np.ndarray] = None,
+    isolated: bool = False,
     **kwargs: Any
 ) -> np.ndarray:
     """
@@ -496,6 +604,7 @@ def render_3d_terrain_rgba(
         bgcolor: Background color (default '#0e1117').
         width: Optional override for width.
         height: Optional override for height.
+        isolated: When True (default), renders in an isolated subprocess to protect Kivy's GL context.
 
     Returns:
         NumPy uint8 array of shape (H, W, 4) with RGBA channels.
@@ -508,32 +617,53 @@ def render_3d_terrain_rgba(
     w = int(width) if width is not None else int(size[0])
     h = int(height) if height is not None else int(size[1])
     target_size = (w, h)
+    sat_img = kwargs.get("satellite_img", satellite_img)
 
-    canvas = None
-    try:
-        canvas, _, _ = create_3d_terrain_scene(
-            dem_arr=dem_arr,
-            lake_mask=lake_mask,
-            bbox=bbox,
-            size=target_size,
-            elevation=elevation,
-            azimuth=azimuth,
-            vertical_exaggeration=vertical_exaggeration,
-            colormap=colormap,
-            bgcolor=bgcolor,
-            interactive=False,
-            show=False
-        )
+    if isolated:
+        try:
+            ctx = multiprocessing.get_context("spawn")
+            parent_conn, child_conn = ctx.Pipe()
+            p = ctx.Process(
+                target=_isolated_render_worker,
+                args=(
+                    child_conn,
+                    dem_arr,
+                    lake_mask,
+                    bbox,
+                    target_size,
+                    elevation,
+                    azimuth,
+                    vertical_exaggeration,
+                    colormap if isinstance(colormap, str) else "terrain",
+                    bgcolor,
+                    sat_img
+                ),
+                daemon=True
+            )
+            p.start()
+            if parent_conn.poll(10.0):
+                res = parent_conn.recv()
+                p.join(timeout=2.0)
+                if not isinstance(res, Exception):
+                    return res
+            p.terminate()
+            p.join(timeout=1.0)
+        except Exception:
+            pass
 
-        rgba_img = canvas.render()
-        return np.ascontiguousarray(rgba_img, dtype=np.uint8)
-
-    finally:
-        if canvas is not None:
-            try:
-                canvas.close()
-            except Exception:
-                pass
+    # Direct fallback if isolated is False or failed
+    return _render_3d_terrain_direct(
+        dem_arr=dem_arr,
+        lake_mask=lake_mask,
+        bbox=bbox,
+        size=target_size,
+        elevation=elevation,
+        azimuth=azimuth,
+        vertical_exaggeration=vertical_exaggeration,
+        colormap=colormap,
+        bgcolor=bgcolor,
+        satellite_img=sat_img
+    )
 
 
 def _standalone_window_process_worker(
@@ -546,9 +676,13 @@ def _standalone_window_process_worker(
     azimuth: float,
     vertical_exaggeration: float,
     colormap: str,
-    bgcolor: Any
+    bgcolor: Any,
+    satellite_img: Optional[np.ndarray] = None
 ) -> None:
     """Worker process entrypoint for isolated multi-process 3D window."""
+    import os
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+    os.environ.setdefault("QT_API", "pyqt6")
     try:
         canvas, _, _ = create_3d_terrain_scene(
             dem_arr=dem_arr,
@@ -562,9 +696,12 @@ def _standalone_window_process_worker(
             bgcolor=bgcolor,
             interactive=True,
             show=True,
-            title=title
+            title=title,
+            satellite_img=satellite_img
         )
         app.run()
+    except (KeyboardInterrupt, SystemExit):
+        pass
     except Exception as e:
         print(f"[vispy_3d] Error in standalone 3D window: {e}")
 
@@ -583,6 +720,7 @@ def launch_interactive_vispy_window(
     block: bool = True,
     run_in_background: bool = False,
     dem: Optional[np.ndarray] = None,
+    satellite_img: Optional[np.ndarray] = None,
     **kwargs: Any
 ) -> Any:
     """
@@ -616,7 +754,8 @@ def launch_interactive_vispy_window(
     cmap_name = colormap if isinstance(colormap, str) else "terrain"
 
     if run_in_background:
-        p = multiprocessing.Process(
+        ctx = multiprocessing.get_context("spawn")
+        p = ctx.Process(
             target=_standalone_window_process_worker,
             args=(
                 dem_arr,
@@ -628,7 +767,8 @@ def launch_interactive_vispy_window(
                 azimuth,
                 vertical_exaggeration,
                 cmap_name,
-                bgcolor
+                bgcolor,
+                satellite_img
             ),
             daemon=True
         )
@@ -647,7 +787,8 @@ def launch_interactive_vispy_window(
         bgcolor=bgcolor,
         interactive=True,
         show=True,
-        title=title
+        title=title,
+        satellite_img=satellite_img
     )
 
     if block:

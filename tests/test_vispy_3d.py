@@ -5,6 +5,7 @@ Validates offscreen framebuffer rendering with both synthetic DEM grids and real
 """
 
 import os
+import time
 from typing import Tuple
 import pytest
 import numpy as np
@@ -311,3 +312,24 @@ def test_launch_interactive_vispy_window_non_blocking():
         assert hasattr(canvas, "central_widget")
     finally:
         canvas.close()
+
+
+def test_launch_interactive_vispy_window_background_process():
+    """Validates launching standalone VisPy 3D window in isolated background process."""
+    dem, mask = create_synthetic_dem(shape=(30, 40))
+
+    proc = launch_interactive_vispy_window(
+        dem_arr=dem,
+        lake_mask=mask,
+        size=(640, 480),
+        title="GLOF-Watch Isolated 3D Test",
+        run_in_background=True
+    )
+    try:
+        assert proc is not None
+        assert proc.pid is not None
+        time.sleep(1.0)
+        assert proc.is_alive()
+    finally:
+        proc.terminate()
+        proc.join(timeout=2.0)

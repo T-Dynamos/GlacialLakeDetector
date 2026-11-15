@@ -26,22 +26,38 @@ from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.card import MDCard
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.chip import MDChip, MDChipText
+from kivymd.uix.menu import MDDropdownMenu
 
 from glof_watch.ui.mapview_compat import (
     ensure_mapview_compat,
     MapView,
     MapLayer,
+    MapSource,
     Coordinate,
 )
 from glof_watch.config import load_targets
 
 # Ensure compatibility shim is active
 ensure_mapview_compat()
+
+# Tile Sources: High-Resolution Satellite Imagery (Default) and OpenStreetMap
+SATELLITE_MAP_SOURCE = MapSource(
+    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    min_zoom=1,
+    max_zoom=18,
+    attribution="Esri World Imagery"
+)
+STREET_MAP_SOURCE = MapSource(
+    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    min_zoom=1,
+    max_zoom=19,
+    attribution="OpenStreetMap"
+)
 
 # Constants
 DEFAULT_LAT = 34.2000
@@ -222,8 +238,9 @@ class MapScreen(MDScreen):
         """Constructs the layered UI widgets."""
         root_layout = FloatLayout(size_hint=(1, 1))
 
-        # 1. Base MapView Layer
+        # 1. Base MapView Layer (Default to High-Resolution Satellite Imagery)
         self.map_view = MapView(
+            map_source=SATELLITE_MAP_SOURCE,
             lat=self.center_lat,
             lon=self.center_lon,
             zoom=self.current_zoom,
@@ -241,19 +258,16 @@ class MapScreen(MDScreen):
         self.reticle = BoundingBoxReticle(bbox=self.bbox)
         self.map_view.add_layer(self.reticle, mode="window")
 
-        # 3. Floating HUD Card (Top)
+        # 3. Floating HUD Card (Top with Target Dropdown & Layer Toggle)
         self.hud_card = self._create_hud_card()
         root_layout.add_widget(self.hud_card)
+        self.target_menu = None
 
-        # 4. Preset Selector Bar (Under HUD Card)
-        self.preset_bar = self._create_preset_bar()
-        root_layout.add_widget(self.preset_bar)
-
-        # 5. Bounding Box Control / Nudge Card (Bottom-Left)
+        # 4. Bounding Box Control / Nudge Card (Bottom-Left)
         self.bbox_card = self._create_bbox_control_card()
         root_layout.add_widget(self.bbox_card)
 
-        # 6. Analyze Action Button (Bottom-Right)
+        # 5. Analyze Action Button (Bottom-Right)
         self.analyze_button = MDButton(
             MDButtonText(text="ANALYZE SELECTED AOI"),
             style="filled",
@@ -269,34 +283,53 @@ class MapScreen(MDScreen):
         self.update_hud()
 
     def _create_hud_card(self) -> MDCard:
-        """Creates the floating telemetry and scale HUD card at the top."""
+        """Creates the floating telemetry and scale HUD card at the top with Target Dropdown."""
         card = MDCard(
             style="elevated",
             pos_hint={"top": 0.98, "center_x": 0.5},
             size_hint=(0.96, None),
             height=dp(58),
-            padding=[dp(16), dp(8), dp(16), dp(8)],
+            padding=[dp(16), dp(6), dp(16), dp(6)],
         )
 
         hud_box = MDBoxLayout(
             orientation="horizontal",
-            spacing=dp(16),
+            spacing=dp(12),
             adaptive_height=True,
             pos_hint={"center_y": 0.5},
         )
 
         self.hud_title_label = MDLabel(
-            text="GLOF-WATCH CARTOGRAPHY",
+            text="GLOF-WATCH",
             font_style="Title",
             role="medium",
             adaptive_size=True,
         )
 
-        self.hud_target_label = MDLabel(
-            text=f"AOI: {self.current_target_info.get('name', 'Custom') if self.current_target_info else 'Custom'}",
-            font_style="Label",
-            role="large",
-            adaptive_size=True,
+        # Dropdown button for Target selection
+        t_name = self.current_target_info.get('name', 'Gya Glacial Lake') if self.current_target_info else 'Select Target'
+        self.btn_target_text = MDButtonText(text=f"Target: {t_name}")
+        self.hud_target_label = self.btn_target_text
+        self.btn_target_dropdown = MDButton(
+            MDButtonIcon(icon="target"),
+            self.btn_target_text,
+            MDButtonIcon(icon="menu-down"),
+            style="tonal",
+            size_hint=(None, None),
+            height=dp(36),
+            on_release=self.open_target_menu
+        )
+
+        # Toggle button for Map Layer (Satellite vs Street)
+        self.btn_layer_text = MDButtonText(text="Satellite (Active)")
+        self.btn_layer_icon = MDButtonIcon(icon="satellite-variant")
+        self.btn_layer_toggle = MDButton(
+            self.btn_layer_icon,
+            self.btn_layer_text,
+            style="outlined",
+            size_hint=(None, None),
+            height=dp(36),
+            on_release=self.toggle_map_layer
         )
 
         self.hud_coords_label = MDLabel(
@@ -314,109 +347,78 @@ class MapScreen(MDScreen):
         )
 
         hud_box.add_widget(self.hud_title_label)
-        hud_box.add_widget(self.hud_target_label)
+        hud_box.add_widget(self.btn_target_dropdown)
+        hud_box.add_widget(self.btn_layer_toggle)
         hud_box.add_widget(self.hud_coords_label)
         hud_box.add_widget(self.hud_scale_label)
 
         card.add_widget(hud_box)
         return card
 
-    def _create_preset_bar(self) -> MDCard:
-        """Creates the horizontal scrolling preset selector bar."""
-        card = MDCard(
-            style="elevated",
-            pos_hint={"top": 0.89, "center_x": 0.5},
-            size_hint=(0.96, None),
-            height=dp(52),
-            padding=[dp(12), dp(4), dp(12), dp(4)],
-        )
+    def toggle_map_layer(self, *args):
+        """Toggles between High-Resolution Satellite imagery and Street/Topo map."""
+        if getattr(self.map_view, "map_source", None) == SATELLITE_MAP_SOURCE:
+            self.map_view.map_source = STREET_MAP_SOURCE
+            self.btn_layer_text.text = "Street/Topo (Active)"
+            self.btn_layer_icon.icon = "map-outline"
+        else:
+            self.map_view.map_source = SATELLITE_MAP_SOURCE
+            self.btn_layer_text.text = "Satellite (Active)"
+            self.btn_layer_icon.icon = "satellite-variant"
 
-        scroll_view = MDScrollView(
-            do_scroll_y=False,
-            do_scroll_x=True,
-            size_hint=(1, 1),
-        )
-
-        chips_box = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(8),
-            adaptive_width=True,
-            pos_hint={"center_y": 0.5},
-        )
-
-        # Focused Lakes Header
-        chips_box.add_widget(
-            MDLabel(
-                text="FOCUSED LAKES:",
-                font_style="Label",
-                role="small",
-                adaptive_size=True,
-                padding=[dp(4), dp(8), dp(4), dp(8)],
-            )
-        )
-
-        # Add focused lake preset chips
+    def _create_target_menu(self):
+        """Builds MDDropdownMenu with categorized Focused Lakes & Regional Corridors."""
+        menu_items = []
         focused_order = ["gya", "kyagar", "drang_drung", "rumbak", "phyang", "parkachik"]
         for key in focused_order:
             if key in self.focused_lakes:
                 target = self.focused_lakes[key]
-                display_name = target["name"].split(" ")[0]
-                if key == "drang_drung":
-                    display_name = "Drang-Drung"
-                chip = MDChip(
-                    MDChipText(text=display_name),
-                    type="filter",
-                    active=(key == self.active_preset_key),
-                )
-                chip.bind(on_release=self._make_preset_callback(key))
-                self.chip_widgets[key] = chip
-                chips_box.add_widget(chip)
+                t_name = target["name"]
+                elev = target.get("elevation_approx_m", "")
+                elev_str = f" ({elev}m)" if elev else ""
+                menu_items.append({
+                    "text": f"{t_name}{elev_str}",
+                    "leading_icon": "water",
+                    "on_release": lambda *a, k=key: self._on_menu_item_selected(k),
+                })
 
-        # Regional Corridors Header
-        chips_box.add_widget(
-            MDLabel(
-                text="REGIONAL CORRIDORS:",
-                font_style="Label",
-                role="small",
-                adaptive_size=True,
-                padding=[dp(12), dp(8), dp(4), dp(8)],
-            )
-        )
-
-        # Add regional corridor preset chips
         regional_order = [
             "upper_indus_regional",
             "zanskar_regional",
             "suru_nun_kun_regional",
-            "shyok_karakoram_regional",
+            "shyok_karakoram_regional"
         ]
-        regional_labels = {
-            "upper_indus_regional": "Upper Indus",
-            "zanskar_regional": "Zanskar",
-            "suru_nun_kun_regional": "Suru",
-            "shyok_karakoram_regional": "Shyok",
-        }
         for key in regional_order:
             if key in self.regional_scan_areas:
-                display_name = regional_labels.get(key, key)
-                chip = MDChip(
-                    MDChipText(text=display_name),
-                    type="filter",
-                    active=(key == self.active_preset_key),
-                )
-                chip.bind(on_release=self._make_preset_callback(key))
-                self.chip_widgets[key] = chip
-                chips_box.add_widget(chip)
+                target = self.regional_scan_areas[key]
+                t_name = target["name"]
+                sq_km = target.get("approx_area_sq_km", "")
+                area_str = f" ({sq_km} km²)" if sq_km else ""
+                menu_items.append({
+                    "text": f"{t_name}{area_str}",
+                    "leading_icon": "radar",
+                    "on_release": lambda *a, k=key: self._on_menu_item_selected(k),
+                })
 
-        scroll_view.add_widget(chips_box)
-        card.add_widget(scroll_view)
-        return card
+        return MDDropdownMenu(
+            caller=self.btn_target_dropdown,
+            items=menu_items,
+            max_height=dp(360),
+            position="bottom",
+        )
 
-    def _make_preset_callback(self, key: str):
-        """Creates an on_release handler for a target preset chip."""
-        def callback(*args):
-            self.select_preset(key)
-        return callback
+    def open_target_menu(self, *args):
+        """Opens target dropdown menu."""
+        if not hasattr(self, "target_menu") or self.target_menu is None:
+            self.target_menu = self._create_target_menu()
+        if not self.target_menu.parent:
+            self.target_menu.open()
+
+    def _on_menu_item_selected(self, key: str):
+        """Handles target selection from dropdown menu."""
+        if hasattr(self, "target_menu") and self.target_menu:
+            self.target_menu.dismiss()
+        self.select_preset(key)
 
     def _create_bbox_control_card(self) -> MDCard:
         """Creates the bottom-left telemetry and interactive nudge control card."""
@@ -507,9 +509,9 @@ class MapScreen(MDScreen):
         new_bbox = list(target["bbox"])
         self.bbox = new_bbox
 
-        # Update chip states
-        for key, chip in self.chip_widgets.items():
-            chip.active = (key == preset_key)
+        # Update target dropdown button text
+        if hasattr(self, "btn_target_text") and self.btn_target_text:
+            self.btn_target_text.text = f"Target: {target['name']}"
 
         center_lat, center_lon = calculate_bbox_center(new_bbox)
         optimal_zoom = calculate_optimal_zoom(
@@ -633,7 +635,10 @@ class MapScreen(MDScreen):
             if self.current_target_info
             else "Custom AOI"
         )
-        self.hud_target_label.text = f"AOI: {target_name}"
+        if hasattr(self, "btn_target_text") and self.btn_target_text:
+            self.btn_target_text.text = f"Target: {target_name}"
+        if hasattr(self, "hud_target_label") and self.hud_target_label:
+            self.hud_target_label.text = f"AOI: {target_name}"
 
         # Bounding box readout
         b = self.bbox

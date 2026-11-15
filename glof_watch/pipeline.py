@@ -5,6 +5,7 @@ Coordinates data harvesting, radar-topography processing, and lake detection
 with clear step logging and visual progress tracking.
 """
 
+import os
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -201,10 +202,11 @@ def run_detection_for_bbox(
 
     # Step 8: Render Diagnostic Figure (if plot_out) or Finalize
     saved_plot = None
+    sat_plot_out = None
     if plot_out:
         t_step = time.time()
         log_step(8, "Rendering 4-Panel Ultra-HD (300 DPI) Diagnostic Figure with Satellite Backdrop...", advance=0)
-        from .visualizer import plot_detection_results
+        from .visualizer import plot_detection_results, render_satellite_shoreline_view
         metadata["total_area_ha"] = final_stats['total_area_ha']
         saved_plot = plot_detection_results(
             dem_arr=dem_arr,
@@ -219,6 +221,19 @@ def run_detection_for_bbox(
             vh_db=vh_db,
             satellite_img=satellite_img
         )
+        sat_plot_out = os.path.splitext(plot_out)[0] + "_satellite.png"
+        try:
+            render_satellite_shoreline_view(
+                satellite_img=satellite_img,
+                bbox=bbox,
+                detected_lakes=refined_lakes,
+                metadata=metadata,
+                output_path=sat_plot_out,
+                vv_db=vv_db,
+                vh_db=vh_db
+            )
+        except Exception:
+            sat_plot_out = None
         log_step(8, f"Diagnostic Figure Saved ({round(time.time() - t_step, 2)}s)", advance=1)
 
     # Final Step: Synthesis & Packaging
@@ -241,7 +256,9 @@ def run_detection_for_bbox(
         "stats": final_stats,
         "metadata": metadata,
         "dem_arr": dem_arr,
-        "lake_mask": refined_lake_mask
+        "lake_mask": refined_lake_mask,
+        "satellite_img": satellite_img,
+        "satellite_plot_path": sat_plot_out
     }
 
 def run_multithreaded_pipeline(

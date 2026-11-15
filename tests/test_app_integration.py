@@ -53,7 +53,8 @@ class TestAppIntegration(unittest.TestCase):
         # 1. Transition to AnalysisScreen
         self.app.switch_to_analysis(
             bbox=[77.165, 35.660, 77.215, 35.700],
-            target_info={"name": "Kyagar Ice-Dammed Lake", "basin": "Upper Shyok"}
+            target_info={"name": "Kyagar Ice-Dammed Lake", "basin": "Upper Shyok"},
+            auto_start=False
         )
         self.assertEqual(self.app.screen_manager.current, "analysis_screen")
         self.assertEqual(self.app.active_target_name, "Kyagar Ice-Dammed Lake")
@@ -145,10 +146,10 @@ class TestAppIntegration(unittest.TestCase):
         """Tests dual 2D / 3D view mode toggle on AnalysisScreen."""
         screen = self.app.analysis_screen
 
-        # Switch to 3D View
+        # Switch to 3D View (Standalone 3D Hub)
         screen.switch_view_mode("3d")
         self.assertEqual(screen.active_view_mode, "3d")
-        self.assertIn(screen.image_3d, screen.view_container.children)
+        self.assertIn(screen.card_3d_hub, screen.view_container.children)
 
         # Switch back to 2D View
         screen.switch_view_mode("2d")

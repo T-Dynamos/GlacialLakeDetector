@@ -47,8 +47,10 @@ class AnalysisScreen(MDScreen):
         self.current_result: Optional[Dict[str, Any]] = None
         self.dem_arr: Optional[np.ndarray] = None
         self.lake_mask: Optional[np.ndarray] = None
-        self.active_view_mode: str = "2d"  # "2d" or "3d"
+        self.satellite_img: Optional[np.ndarray] = None
+        self.active_view_mode: str = "sat"  # "sat", "2d", or "3d"
         self.is_running: bool = False
+        self._bg_processes: List[Any] = []
 
         self._build_ui()
         self._load_cached_results_if_present()
@@ -166,31 +168,38 @@ class AnalysisScreen(MDScreen):
             size_hint_x=0.64
         )
 
-        # View mode selector bar
+        # View mode selector bar: Satellite Shoreline, 2D Diagnostic, 3D Relief, 3D Orbit
         view_bar = MDBoxLayout(
             orientation="horizontal",
             size_hint=(1, None),
             height=38,
             spacing=8
         )
+        self.btn_view_sat = MDButton(
+            MDButtonIcon(icon="satellite-variant"),
+            MDButtonText(text="Satellite Shoreline"),
+            style="filled",
+            on_release=lambda *args: self.switch_view_mode("sat")
+        )
         self.btn_view_2d = MDButton(
             MDButtonIcon(icon="image-outline"),
             MDButtonText(text="2D Diagnostic"),
-            style="filled",
-            on_release=lambda x: self.switch_view_mode("2d")
+            style="tonal",
+            on_release=lambda *args: self.switch_view_mode("2d")
         )
         self.btn_view_3d = MDButton(
             MDButtonIcon(icon="cube-outline"),
-            MDButtonText(text="3D Relief View"),
+            MDButtonText(text="3D Relief Hub"),
             style="tonal",
-            on_release=lambda x: self.switch_view_mode("3d")
+            on_release=lambda *args: self.switch_view_mode("3d")
         )
         self.btn_view_orbit = MDButton(
             MDButtonIcon(icon="rotate-3d-variant"),
-            MDButtonText(text="Open 3D Interactive Window"),
-            style="outlined",
-            on_release=lambda x: self.open_interactive_vispy_window()
+            MDButtonText(text="Launch 3D Window"),
+            style="filled",
+            on_release=lambda *args: self.open_interactive_vispy_window()
         )
+        view_bar.add_widget(self.btn_view_sat)
         view_bar.add_widget(self.btn_view_2d)
         view_bar.add_widget(self.btn_view_3d)
         view_bar.add_widget(self.btn_view_orbit)
@@ -199,7 +208,15 @@ class AnalysisScreen(MDScreen):
         # Main visual container
         self.view_container = MDBoxLayout(size_hint=(1, 1))
 
-        # 2D Scatter Image (with pan/zoom)
+        # Satellite View Scatter Image (with pan/zoom)
+        self.scatter_sat = ScatterLayout(do_rotation=False)
+        self.image_sat = Image(
+            fit_mode="contain",
+            size_hint=(1, 1)
+        )
+        self.scatter_sat.add_widget(self.image_sat)
+
+        # 2D Diagnostic Scatter Image (with pan/zoom)
         self.scatter_2d = ScatterLayout(do_rotation=False)
         self.image_2d = Image(
             fit_mode="contain",
@@ -207,14 +224,156 @@ class AnalysisScreen(MDScreen):
         )
         self.scatter_2d.add_widget(self.image_2d)
 
-        # 3D Image Widget
-        self.image_3d = Image(
-            fit_mode="contain",
+        # ---------------------------------------------------------
+        # 3D Dedicated Control Hub Card (Standalone VisPy Window Mode)
+        # ---------------------------------------------------------
+        self.card_3d_hub = MDCard(
+            orientation="vertical",
+            padding=[20, 16, 20, 16],
+            spacing=10,
+            style="elevated",
             size_hint=(1, 1)
         )
 
-        # Start with 2D View active
-        self.view_container.add_widget(self.scatter_2d)
+        hub_header = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=32,
+            spacing=10
+        )
+        hub_header.add_widget(
+            MDLabel(
+                text="3D ELEVATION & GLACIAL RELIEF MODEL",
+                font_style="Title",
+                role="medium",
+                bold=True,
+                size_hint_x=0.65
+            )
+        )
+        self.lbl_3d_status = MDLabel(
+            text="ENGINE READY",
+            font_style="Label",
+            role="medium",
+            halign="right",
+            bold=True,
+            size_hint_x=0.35
+        )
+        hub_header.add_widget(self.lbl_3d_status)
+        self.card_3d_hub.add_widget(hub_header)
+
+        self.card_3d_hub.add_widget(
+            MDLabel(
+                text="Isolated High-Performance 60 FPS VisPy Window with Satellite Texture Draping & Lake Delineation",
+                font_style="Body",
+                role="small",
+                size_hint=(1, None),
+                height=20
+            )
+        )
+
+        # 3D Telemetry Row
+        telemetry_row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=10,
+            size_hint=(1, None),
+            height=74
+        )
+
+        # Card A: Elevation Span
+        card_elev_span = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_elev_span.add_widget(MDLabel(text="ELEVATION RANGE", font_style="Label", role="small", halign="center"))
+        self.lbl_3d_elev_range = MDLabel(text="-- m", font_style="Headline", role="small", halign="center", bold=True)
+        card_elev_span.add_widget(self.lbl_3d_elev_range)
+        self.lbl_3d_relief = MDLabel(text="Relief: -- m", font_style="Body", role="small", halign="center")
+        card_elev_span.add_widget(self.lbl_3d_relief)
+        telemetry_row.add_widget(card_elev_span)
+
+        # Card B: DEM Grid & Resolution
+        card_grid = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_grid.add_widget(MDLabel(text="DEM GRID CELLS", font_style="Label", role="small", halign="center"))
+        self.lbl_3d_grid_res = MDLabel(text="144 x 108", font_style="Headline", role="small", halign="center", bold=True)
+        card_grid.add_widget(self.lbl_3d_grid_res)
+        card_grid.add_widget(MDLabel(text="Copernicus 30m Global", font_style="Body", role="small", halign="center"))
+        telemetry_row.add_widget(card_grid)
+
+        # Card C: Draping & Water Plane
+        card_drape = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_drape.add_widget(MDLabel(text="GLACIAL DRAPING", font_style="Label", role="small", halign="center"))
+        self.lbl_3d_drape = MDLabel(text="ACTIVE CONTOUR", font_style="Headline", role="small", halign="center", bold=True)
+        card_drape.add_widget(self.lbl_3d_drape)
+        card_drape.add_widget(MDLabel(text="Cyan #00FFFF @ 85%", font_style="Body", role="small", halign="center"))
+        telemetry_row.add_widget(card_drape)
+
+        self.card_3d_hub.add_widget(telemetry_row)
+
+        # Navigation & Controls Guide Card
+        controls_card = MDCard(
+            orientation="vertical",
+            padding=[12, 8, 12, 8],
+            spacing=4,
+            style="outlined",
+            size_hint=(1, 1)
+        )
+        controls_card.add_widget(
+            MDLabel(
+                text="STANDALONE VISPY 3D INTERACTION CONTROLS",
+                font_style="Label",
+                role="medium",
+                bold=True,
+                size_hint=(1, None),
+                height=20
+            )
+        )
+
+        nav_guide = (
+            "[b]Mouse Navigation:[/b]\n"
+            "  * [b]Left Click + Drag:[/b] 360-degree continuous turntable orbit & azimuth rotation\n"
+            "  * [b]Right Click + Drag:[/b] Pan terrain center point across horizontal/vertical planes\n"
+            "  * [b]Scroll Wheel:[/b] Fluid altitude camera zoom (in/out)\n\n"
+            "[b]Interactive Keyboard Shortcuts:[/b]\n"
+            "  * [b]Key 'W':[/b] Toggle 3D wireframe mesh overlay\n"
+            "  * [b]Key 'L':[/b] Toggle glacial lake water polygon and contour draping\n"
+            "  * [b]Key 'T':[/b] Cycle elevation shaders (Alpine Glacial -> Earth Tones -> Ice -> Viridis)\n"
+            "  * [b]Key 'R':[/b] Reset camera to default 35-degree elevation perspective\n"
+            "  * [b]Key 'Esc' / 'Q':[/b] Close 3D viewer window"
+        )
+        self.lbl_nav_guide = MDLabel(
+            text=nav_guide,
+            markup=True,
+            font_style="Body",
+            role="small",
+            size_hint=(1, 1)
+        )
+        controls_card.add_widget(self.lbl_nav_guide)
+        self.card_3d_hub.add_widget(controls_card)
+
+        # Action Row inside 3D Hub
+        hub_action_row = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=44,
+            spacing=10
+        )
+        self.btn_launch_hub = MDButton(
+            MDButtonIcon(icon="rotate-3d-variant"),
+            MDButtonText(text="Launch Standalone 3D Window"),
+            style="filled",
+            on_release=lambda *args: self.open_interactive_vispy_window()
+        )
+        hub_action_row.add_widget(self.btn_launch_hub)
+        self.card_3d_hub.add_widget(hub_action_row)
+
+        # Keep self.image_3d for test/API compatibility
+        self.image_3d = Image(
+            fit_mode="contain",
+            size_hint=(None, None),
+            size=(0, 0),
+            opacity=0
+        )
+        self.card_3d_hub.add_widget(self.image_3d)
+
+        # Start with Satellite Shoreline View active
+        self.view_container.add_widget(self.scatter_sat)
         left_col.add_widget(self.view_container)
         workspace.add_widget(left_col)
 
@@ -290,19 +449,19 @@ class AnalysisScreen(MDScreen):
             MDButtonIcon(icon="arrow-left"),
             MDButtonText(text="Back to Map"),
             style="outlined",
-            on_release=lambda x: self.action_back_to_map()
+            on_release=lambda *args: self.action_back_to_map()
         )
         self.btn_export_geojson = MDButton(
             MDButtonIcon(icon="file-download-outline"),
             MDButtonText(text="Export GeoJSON"),
             style="tonal",
-            on_release=lambda x: self.action_export_geojson()
+            on_release=lambda *args: self.action_export_geojson()
         )
         self.btn_cross_check = MDButton(
             MDButtonIcon(icon="text-box-search-outline"),
             MDButtonText(text="Cross-Check Lake"),
             style="filled",
-            on_release=lambda x: self.action_cross_check_lake()
+            on_release=lambda *args: self.action_cross_check_lake()
         )
 
         action_bar.add_widget(self.btn_back_map)
@@ -373,35 +532,72 @@ class AnalysisScreen(MDScreen):
         if self.log_scroll:
             self.log_scroll.scroll_y = 0.0
 
+    def reset_screen_state(self, target_name: str = "Target", bbox: Optional[List[float]] = None):
+        """Cleans and resets all images, textures, terminal logs, and KPI metrics before starting a new analysis."""
+        self.target_name = target_name
+        self.current_bbox = bbox
+        self.lbl_target.text = f"TARGET: {target_name.upper()}"
+        self.lbl_basin.text = "Basin: Initializing Ingestion..."
+        self.lbl_status_badge.text = "STATUS: INITIALIZING PIPELINE..."
+        self.lbl_progress_step.text = "Step 0/8: Preparing Data Ingestion"
+        self.progress_bar.value = 0.0
+
+        # Reset all KPI metrics to neutral initial placeholder state
+        self.kpi_lake_count.text = "--"
+        self.kpi_clean_area.text = "-- ha"
+        self.kpi_shadow_cut.text = "--%"
+        self.kpi_risk_level.text = "ANALYZING..."
+        self.kpi_elevation.text = "-- m"
+
+        # Clear logs and display clean start message
+        timestamp = time.strftime("%H:%M:%S")
+        bbox_str = f"[{bbox[0]:.3f}, {bbox[1]:.3f}, {bbox[2]:.3f}, {bbox[3]:.3f}]" if bbox else "Custom AOI"
+        self.lbl_terminal_log.text = f"[{timestamp}] [SCREEN RESET] Cleared previous mission data.\n[{timestamp}] Preparing satellite radar pipeline for '{target_name}'...\n[{timestamp}] AOI Bounding Box: {bbox_str}"
+
+        # Clear visual containers
+        self.image_sat.source = ""
+        self.image_2d.source = ""
+        self.image_3d.texture = None
+
+        # Reset internal data caches
+        self.current_result = None
+        self.dem_arr = None
+        self.lake_mask = None
+        self.satellite_img = None
+
+        # Switch to clean satellite view container
+        self.switch_view_mode("sat")
+
     def start_analysis(self, bbox: List[float], target_info: Optional[Any] = None):
         """
         Spawns background daemon thread to run GLOF-Watch detection without blocking Kivy.
+        Cleans the screen state immediately before commencing the run.
         """
         if self.is_running:
             self.append_log("[WARN] Detection pipeline is already executing. Please wait...")
             return
 
-        self.is_running = True
         self.current_bbox = bbox
 
         if isinstance(target_info, dict):
-            self.target_name = target_info.get("name", "AOI Lake Target")
+            t_name = target_info.get("name", "AOI Lake Target")
             self.basin_name = target_info.get("basin", "Himalayan Basin")
             self.target_id = target_info.get("id") or target_info.get("target_id")
         elif isinstance(target_info, str):
-            self.target_name = target_info
+            t_name = target_info
             self.basin_name = "Himalayan Basin"
             self.target_id = None
         else:
-            self.target_name = "Custom AOI Target"
+            t_name = "Custom AOI Target"
             self.basin_name = "High-Altitude Glacial Basin"
             self.target_id = None
 
-        self.lbl_target.text = f"TARGET: {self.target_name.upper()}"
-        self.lbl_basin.text = f"Basin: {self.basin_name}"
+        # Clean screen completely before running analysis
+        self.reset_screen_state(target_name=t_name, bbox=bbox)
+        self.is_running = True
         self.lbl_status_badge.text = "STATUS: RUNNING PIPELINE..."
-        self.lbl_progress_step.text = "Step 0/8: Pipeline Initialized"
-        self.progress_bar.value = 0.0
+        self.lbl_progress_step.text = "Step 1/8: Ingesting Sentinel-1 SAR & DEM..."
+        self.progress_bar.value = 0.5
 
         timestamp = time.strftime("%H:%M:%S")
         self.append_log(f"[{timestamp}] [MISSION START] Analyzing target '{self.target_name}' at bbox {bbox}")
@@ -482,14 +678,28 @@ class AnalysisScreen(MDScreen):
         )
         self.kpi_elevation.text = f"{mean_elev:,.0f} m"
 
-        # Reload 2D image
+        # Cache arrays for 3D and satellite visualizers
+        self.dem_arr = result.get("dem_arr")
+        self.lake_mask = result.get("lake_mask")
+        self.satellite_img = result.get("satellite_img")
+
+        # Reload Satellite Shoreline image
+        sat_plot = result.get("satellite_plot_path")
+        if sat_plot and os.path.exists(sat_plot):
+            self.image_sat.source = sat_plot
+            self.image_sat.reload()
+        elif result.get("plot_path") and os.path.exists(result["plot_path"]):
+            self.image_sat.source = result["plot_path"]
+            self.image_sat.reload()
+
+        # Reload 2D Diagnostic image
         plot_path = result.get("plot_path")
         if plot_path and os.path.exists(plot_path):
             self.image_2d.source = plot_path
             self.image_2d.reload()
 
-        # Bake 3D texture in background or directly
-        self._update_3d_texture()
+        # Update 3D telemetry display values
+        self._update_3d_telemetry_card()
 
         elapsed = result.get("elapsed_sec", 0.0)
         self.append_log(f"[COMPLETE] Pipeline finished in {elapsed}s: {lake_count} lakes identified ({clean_ha} ha).")
@@ -499,55 +709,95 @@ class AnalysisScreen(MDScreen):
         self.is_running = False
         self.lbl_status_badge.text = "STATUS: ERROR"
         self.lbl_progress_step.text = "MISSION FAILED"
+        self.kpi_risk_level.text = "ERROR"
+        self.kpi_lake_count.text = "--"
+        self.kpi_clean_area.text = "-- ha"
+        self.kpi_shadow_cut.text = "--%"
+        self.kpi_elevation.text = "-- m"
         self.append_log(f"[ERROR] Pipeline execution failed: {error_message}")
 
     def switch_view_mode(self, mode: str):
-        """Toggles between 2D Diagnostic figure and 3D terrain relief."""
+        """Toggles between Satellite Shoreline, 2D Diagnostic figure, and 3D terrain relief hub."""
         self.active_view_mode = mode
         self.view_container.clear_widgets()
 
-        if mode == "2d":
+        if mode == "sat":
+            self.btn_view_sat.style = "filled"
+            self.btn_view_2d.style = "tonal"
+            self.btn_view_3d.style = "tonal"
+            self.view_container.add_widget(self.scatter_sat)
+        elif mode == "2d":
+            self.btn_view_sat.style = "tonal"
             self.btn_view_2d.style = "filled"
             self.btn_view_3d.style = "tonal"
             self.view_container.add_widget(self.scatter_2d)
         else:
+            self.btn_view_sat.style = "tonal"
             self.btn_view_2d.style = "tonal"
             self.btn_view_3d.style = "filled"
-            self._update_3d_texture()
-            self.view_container.add_widget(self.image_3d)
+            self._update_3d_telemetry_card()
+            self.view_container.add_widget(self.card_3d_hub)
+
+    def _update_3d_telemetry_card(self):
+        """Refreshes elevation and grid metrics on card_3d_hub without OpenGL rendering."""
+        if self.dem_arr is not None:
+            min_e = float(np.min(self.dem_arr))
+            max_e = float(np.max(self.dem_arr))
+            relief = max_e - min_e
+            self.lbl_3d_elev_range.text = f"{min_e:,.0f} - {max_e:,.0f} m"
+            self.lbl_3d_relief.text = f"Relief: {relief:,.0f} m"
+            h, w = self.dem_arr.shape[:2]
+            self.lbl_3d_grid_res.text = f"{w} x {h}"
+            if self.lake_mask is not None and np.any(self.lake_mask):
+                lake_pixels = int(np.count_nonzero(self.lake_mask))
+                self.lbl_3d_drape.text = f"ACTIVE ({lake_pixels} px)"
+            else:
+                self.lbl_3d_drape.text = "SURFACE RELIEF"
 
     def _update_3d_texture(self):
-        """Bakes VisPy 3D terrain RGBA render into a Kivy Texture."""
-        if self.dem_arr is None:
-            # Check if cached dem data can be loaded or fallback synthetic DEM
-            self.dem_arr = np.random.uniform(4200, 5600, (60, 60)).astype(np.float32)
-            self.lake_mask = np.zeros((60, 60), dtype=np.uint8)
-            self.lake_mask[25:35, 25:35] = 1
-
-        try:
-            rgba = render_3d_terrain_rgba(self.dem_arr, self.lake_mask, width=800, height=600)
-            h, w = rgba.shape[:2]
-            # Flip vertically for OpenGL/Kivy coordinates
-            flipped = np.ascontiguousarray(np.flipud(rgba))
-            tex = Texture.create(size=(w, h), colorfmt="rgba")
-            tex.blit_buffer(flipped.tobytes(), colorfmt="rgba", bufferfmt="ubyte")
-            self.image_3d.texture = tex
-        except Exception as e:
-            self.append_log(f"[WARN] 3D Texture baking failed: {e}")
+        """Updates 3D telemetry display values on the 3D control hub."""
+        self._update_3d_telemetry_card()
 
     def open_interactive_vispy_window(self):
-        """Opens standalone 60 FPS VisPy orbit canvas."""
+        """Opens standalone 60 FPS VisPy orbit canvas textured with satellite imagery in an isolated process."""
         if self.dem_arr is None:
-            self._update_3d_texture()
+            if os.path.exists("targets_cache/gya_dem.tif"):
+                try:
+                    import rasterio
+                    with rasterio.open("targets_cache/gya_dem.tif") as src:
+                        self.dem_arr = src.read(1).astype(np.float32)
+                except Exception:
+                    pass
+            if self.dem_arr is None:
+                self.dem_arr = np.random.uniform(4200, 5600, (60, 60)).astype(np.float32)
+                self.lake_mask = np.zeros((60, 60), dtype=np.uint8)
+                self.lake_mask[25:35, 25:35] = 1
 
-        self.append_log(f"[3D] Opening interactive 60 FPS VisPy orbit window for {self.target_name}...")
-        launch_interactive_vispy_window(
+        self._update_3d_telemetry_card()
+        self.append_log(f"[3D] Opening standalone 60 FPS VisPy orbit window for {self.target_name}...")
+        proc = launch_interactive_vispy_window(
             dem_arr=self.dem_arr,
             lake_mask=self.lake_mask,
             bbox=self.current_bbox,
             title=f"GLOF-Watch 3D Orbit: {self.target_name}",
+            satellite_img=self.satellite_img,
             run_in_background=True
         )
+        if proc is not None:
+            self._bg_processes.append(proc)
+            self.lbl_3d_status.text = f"WINDOW ACTIVE (PID: {proc.pid})"
+            self.append_log(f"[3D] Standalone VisPy window running on PID {proc.pid} (Isolated OpenGL 4.6).")
+
+    def cleanup_processes(self):
+        """Cleanly terminates any running VisPy 3D standalone processes."""
+        for p in self._bg_processes:
+            try:
+                if hasattr(p, "is_alive") and p.is_alive():
+                    p.terminate()
+                    p.join(timeout=1.0)
+            except Exception:
+                pass
+        self._bg_processes.clear()
 
     def action_back_to_map(self):
         """Navigates back to the MapScreen."""

@@ -269,3 +269,96 @@ def plot_detection_results(
     plt.close(fig)
 
     return output_path
+
+
+def render_satellite_shoreline_view(
+    satellite_img: Optional[np.ndarray],
+    bbox: List[float],
+    detected_lakes: List[Dict[str, Any]],
+    metadata: Dict[str, Any],
+    output_path: str,
+    vv_db: Optional[np.ndarray] = None,
+    vh_db: Optional[np.ndarray] = None
+) -> str:
+    """
+    Renders and saves a dedicated single-view Ultra-HD (300 DPI) satellite imagery plot
+    with high-contrast active-contour lake vector boundaries, coordinate grid, and telemetry badge.
+    """
+    min_lon, min_lat, max_lon, max_lat = bbox
+    full_extent = [min_lon, max_lon, min_lat, max_lat]
+    name = metadata.get("name", "AOI")
+    basin = metadata.get("basin", "Himalayan Basin")
+
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=300)
+
+    if satellite_img is not None:
+        sat_disp = satellite_img
+        if sat_disp.ndim == 3 and sat_disp.shape[0] in (3, 4) and sat_disp.shape[2] not in (3, 4):
+            sat_disp = np.transpose(sat_disp[:3], (1, 2, 0))
+        p2, p98 = np.percentile(sat_disp, (2, 98))
+        sat_stretched = np.clip((sat_disp.astype(float) - p2) / (p98 - p2 + 1e-5), 0.0, 1.0)
+        ax.imshow(sat_stretched, extent=full_extent)
+        sat_tag = "Sentinel-2 10m True-Color Optical Photography"
+    elif vv_db is not None:
+        norm_vv = np.clip((vv_db - (-25.0)) / 20.0, 0.0, 1.0)
+        norm_vh = np.clip(((vh_db if vh_db is not None else vv_db - 6.0) - (-30.0)) / 20.0, 0.0, 1.0)
+        norm_ratio = np.clip(np.abs(norm_vv - norm_vh) * 2.0, 0.0, 1.0)
+        sar_rgb = np.dstack([norm_vv, norm_vh, norm_ratio])
+        ax.imshow(sar_rgb, extent=full_extent)
+        sat_tag = "Sentinel-1 High-Res Dual-Pol SAR Composite"
+    else:
+        ax.set_facecolor('#111827')
+        sat_tag = "Synthetic High-Resolution Sensor Composite"
+
+    # Draw exact vector lakes
+    for idx, lk in enumerate(detected_lakes):
+        geom = lk.get("geometry", {})
+        if geom.get("type") == "Polygon" and geom.get("coordinates"):
+            poly_coords = geom["coordinates"][0]
+            mpl_poly = MplPolygon(
+                poly_coords, closed=True,
+                facecolor='#00D4FF', edgecolor='#00FFFF',
+                linewidth=3.2, alpha=0.65, zorder=5
+            )
+            ax.add_patch(mpl_poly)
+            xs = [c[0] for c in poly_coords]
+            ys = [c[1] for c in poly_coords]
+            ax.plot(xs, ys, 'o', color='#00FFFF', markersize=4.5, zorder=6)
+
+        b = lk.get("bounds", [])
+        if b:
+            rect = Rectangle(
+                (b[0], b[1]), b[2] - b[0], b[3] - b[1],
+                linewidth=1.8, edgecolor='#FFFF00', facecolor='none', linestyle='--', zorder=6
+            )
+            ax.add_patch(rect)
+            cx_lk = (b[0] + b[2]) / 2.0
+            cy_lk = (b[1] + b[3]) / 2.0
+            ax.plot(cx_lk, cy_lk, 'o', color='#FFFF00', markersize=6, markeredgecolor='black', zorder=7)
+
+            p_m = lk.get('perimeter_m', 0.0)
+            a_ha = lk.get('area_ha', 0.0)
+            gsi = lk.get('gsi_score', 0.0)
+            ax.annotate(
+                f"Lake #{idx+1}: {a_ha} ha\nP={p_m:.0f}m | GSI={gsi:.2f}",
+                xy=(cx_lk, cy_lk),
+                xytext=(cx_lk, cy_lk + (max_lat - min_lat) * 0.10),
+                fontsize=9.0, fontweight='bold', color='black',
+                bbox=dict(boxstyle="round,pad=0.35", facecolor="#00FFFF", edgecolor="black", alpha=0.92, lw=1.2),
+                arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0.15", color="black", lw=1.5),
+                zorder=8
+            )
+
+    ax.set_xlim(min_lon, max_lon)
+    ax.set_ylim(min_lat, max_lat)
+    ax.set_xlabel("Longitude (°E)", fontsize=10.0, fontweight='bold')
+    ax.set_ylabel("Latitude (°N)", fontsize=10.0, fontweight='bold')
+    ax.ticklabel_format(useOffset=False, style='plain')
+    ax.grid(True, linestyle=':', alpha=0.45, color='gray')
+    ax.set_title(
+        f"GLOF-Watch Satellite Shoreline View: {name} ({basin})\n{sat_tag} (Cyan = Active-Contour Water Extent)",
+        fontsize=12.0, fontweight='bold', pad=10
+    )
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    return output_path

@@ -201,7 +201,7 @@ class SearchScreen(MDScreen):
 
         # Search Controls Card
         search_card = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="vertical",
             padding=dp(12),
             spacing=dp(8),
@@ -323,7 +323,7 @@ class SearchScreen(MDScreen):
 
         # Source Detection Bar
         det_bar = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="horizontal",
             padding=dp(12),
             spacing=dp(10),
@@ -470,7 +470,7 @@ class SearchScreen(MDScreen):
             hazard_color = (0.20, 0.65, 0.25, 1.0)
 
         card = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="vertical",
             padding=dp(12),
             spacing=dp(6),
@@ -670,7 +670,7 @@ class SearchScreen(MDScreen):
 
         # 1. Primary Verification Result Card
         result_card = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="vertical",
             padding=dp(16),
             spacing=dp(10),
@@ -709,7 +709,7 @@ class SearchScreen(MDScreen):
 
         # 2. Detailed Metric Comparison Grid Card
         metric_card = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="vertical",
             padding=dp(16),
             spacing=dp(8),
@@ -760,7 +760,7 @@ class SearchScreen(MDScreen):
 
         # 3. Historical Glaciological Notes & Outburst Context
         notes_card = MDCard(
-            style="elevated",
+            style="outlined",
             orientation="vertical",
             padding=dp(16),
             spacing=dp(8),

@@ -5,7 +5,10 @@ NASA Space Apps Challenge 2026 - Dancing with the SARs.
 Orchestrates ScreenManager (Map, Analysis, Search), top navigation bar, and dark theme.
 """
 
-import sys
+import os
+os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+os.environ.setdefault("QT_API", "pyqt6")
+
 from typing import Optional, List, Dict, Any
 
 from kivymd.app import MDApp
@@ -56,7 +59,7 @@ class GLOFWatchApp(MDApp):
             MDTopAppBarLeadingButtonContainer(
                 MDIconButton(
                     icon="satellite-variant",
-                    on_release=lambda x: self.switch_to_map()
+                    on_release=lambda *args: self.switch_to_map()
                 )
             ),
             MDTopAppBarTitle(
@@ -65,15 +68,15 @@ class GLOFWatchApp(MDApp):
             MDTopAppBarTrailingButtonContainer(
                 MDIconButton(
                     icon="map-search",
-                    on_release=lambda x: self.switch_to_map()
+                    on_release=lambda *args: self.switch_to_map()
                 ),
                 MDIconButton(
                     icon="chart-bell-curve-cumulative",
-                    on_release=lambda x: self.switch_to_analysis()
+                    on_release=lambda *args: self.switch_to_analysis()
                 ),
                 MDIconButton(
                     icon="database-search",
-                    on_release=lambda x: self.switch_to_search()
+                    on_release=lambda *args: self.switch_to_search()
                 )
             ),
             type="small"
@@ -104,19 +107,19 @@ class GLOFWatchApp(MDApp):
             MDButtonIcon(icon="map-outline"),
             MDButtonText(text="Map & AOI"),
             style="tonal",
-            on_release=lambda x: self.switch_to_map()
+            on_release=lambda *args: self.switch_to_map()
         )
         btn_nav_analysis = MDButton(
             MDButtonIcon(icon="radar"),
             MDButtonText(text="Analysis & 3D"),
             style="tonal",
-            on_release=lambda x: self.switch_to_analysis()
+            on_release=lambda *args: self.switch_to_analysis()
         )
         btn_nav_search = MDButton(
             MDButtonIcon(icon="table-search"),
             MDButtonText(text="Search & Verify"),
             style="tonal",
-            on_release=lambda x: self.switch_to_search()
+            on_release=lambda *args: self.switch_to_search()
         )
 
         sub_bar.add_widget(btn_nav_map)
@@ -178,15 +181,34 @@ class GLOFWatchApp(MDApp):
     center_map = inspect_on_map
     show_lake_on_map = inspect_on_map
 
-    def switch_to_analysis(self, bbox: Optional[List[float]] = None, target_info: Optional[Any] = None):
-        """Switches view to AnalysisScreen and optionally initiates radar detection."""
-        if target_info:
-            self.set_active_target(target_info)
+    def switch_to_analysis(
+        self,
+        bbox: Optional[List[float]] = None,
+        target_info: Optional[Any] = None,
+        auto_start: bool = True
+    ):
+        """
+        Switches view to AnalysisScreen, cleaning previous run state completely
+        and optionally initiating fresh radar-DEM detection.
+        """
+        target_name = "Custom AOI"
+        if isinstance(target_info, dict):
+            target_name = target_info.get("name", "Custom AOI")
+        elif isinstance(target_info, str):
+            target_name = target_info
+        elif self.active_target_name:
+            target_name = self.active_target_name
+
+        self.set_active_target(target_info or target_name)
+
+        # Clean analysis screen state before switching so old runs are completely purged
+        if self.analysis_screen:
+            self.analysis_screen.reset_screen_state(target_name=target_name, bbox=bbox)
 
         if self.screen_manager:
             self.screen_manager.current = "analysis_screen"
 
-        if bbox is not None and self.analysis_screen:
+        if bbox is not None and self.analysis_screen and auto_start:
             self.analysis_screen.start_analysis(bbox=bbox, target_info=target_info)
 
     def switch_to_search(self, detected_lake: Optional[Dict[str, Any]] = None):
@@ -197,6 +219,11 @@ class GLOFWatchApp(MDApp):
         if detected_lake is not None and self.search_screen:
             if hasattr(self.search_screen, "load_detection_for_cross_check"):
                 self.search_screen.load_detection_for_cross_check(detected_lake)
+
+    def on_stop(self):
+        """Clean shutdown of background threads and processes."""
+        if self.analysis_screen and hasattr(self.analysis_screen, "cleanup_processes"):
+            self.analysis_screen.cleanup_processes()
 
 
 def main():

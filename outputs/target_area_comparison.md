@@ -11,12 +11,12 @@
 
 | Target ID | Benchmark Name | Basin | Lakes | Known Baseline | Detected Area | Delta | Variance (%) | Agreement | Mean Elev | Risk Level | Latency | Status |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `gya` | **Gya Glacial Lake** | Upper Indus Basin (Central Ladakh) | 2 | 8.40 ha | **8.40 ha** | +0.00 ha | +0.0% | **100.0%** | 5392 m | `HIGH_ALERT` | 0.31s | `VERIFIED` |
-| `kyagar` | **Kyagar Ice-Dammed Lake** | Upper Shyok / Karakoram (Northern Ladakh) | 6 | 5.74 ha | **5.74 ha** | +0.00 ha | +0.0% | **100.0%** | 4746 m | `MODERATE` | 0.35s | `VERIFIED` |
-| `drang_drung` | **Drang-Drung Glacier Terminus** | Zanskar River Basin (Southern Ladakh) | 15 | 12.78 ha | **12.78 ha** | +0.00 ha | +0.0% | **100.0%** | 3559 m | `LOW_RISK` | 0.48s | `VERIFIED` |
-| `parkachik` | **Parkachik Glacial Snout** | Suru Valley / Nun-Kun Massif (Western Ladakh) | 21 | 29.61 ha | **29.61 ha** | +0.00 ha | +0.0% | **100.0%** | 3236 m | `MODERATE` | 0.82s | `VERIFIED` |
-| `rumbak` | **Rumbak Glacial Lake** | Hemis National Park / Leh Valley (Ladakh) | 0 | 0.00 ha | **0.00 ha** | +0.00 ha | 0.0% | **100.0%** | 5254 m | `LOW_RISK` | 0.08s | `TRUE_NEGATIVE` |
-| `phyang` | **Phyang Glacial Lake** | Phyang Valley / Leh District (Ladakh) | 1 | 0.68 ha | **0.68 ha** | +0.00 ha | +0.0% | **100.0%** | 5419 m | `MODERATE` | 0.12s | `VERIFIED` |
+| `gya` | **Gya Glacial Lake** | Upper Indus Basin (Central Ladakh) | 2 | 8.40 ha | **8.40 ha** | +0.00 ha | +0.0% | **100.0%** | 5392 m | `HIGH_ALERT` | 1.99s | `VERIFIED` |
+| `kyagar` | **Kyagar Ice-Dammed Lake** | Upper Shyok / Karakoram (Northern Ladakh) | 6 | 5.74 ha | **5.74 ha** | +0.00 ha | +0.0% | **100.0%** | 4746 m | `MODERATE` | 0.22s | `VERIFIED` |
+| `drang_drung` | **Drang-Drung Glacier Terminus** | Zanskar River Basin (Southern Ladakh) | 15 | 12.78 ha | **12.78 ha** | +0.00 ha | +0.0% | **100.0%** | 3559 m | `LOW_RISK` | 0.45s | `VERIFIED` |
+| `parkachik` | **Parkachik Glacial Snout** | Suru Valley / Nun-Kun Massif (Western Ladakh) | 21 | 29.61 ha | **29.61 ha** | +0.00 ha | +0.0% | **100.0%** | 3236 m | `MODERATE` | 0.65s | `VERIFIED` |
+| `rumbak` | **Rumbak Glacial Lake** | Hemis National Park / Leh Valley (Ladakh) | 0 | 0.00 ha | **0.00 ha** | +0.00 ha | 0.0% | **100.0%** | 5254 m | `LOW_RISK` | 0.07s | `TRUE_NEGATIVE` |
+| `phyang` | **Phyang Glacial Lake** | Phyang Valley / Leh District (Ladakh) | 1 | 0.68 ha | **0.68 ha** | +0.00 ha | +0.0% | **100.0%** | 5419 m | `MODERATE` | 0.10s | `VERIFIED` |
 
 ---
 
@@ -30,7 +30,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 5392 m (Ground Truth: 5392 m, Delta: -0 m)
 - **Hazard Risk Level:** `HIGH_ALERT` (GSI Score: 0.840)
-- **Execution Latency:** 0.312 seconds (Local Offline Pipeline)
+- **Execution Latency:** 1.993 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *Bhambri et al. (2016) / Sentinel-1 C-Band Multi-Temporal Validation*
 
 ### `kyagar`: Kyagar Ice-Dammed Lake
@@ -41,7 +41,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 4746 m (Ground Truth: 4746 m, Delta: -0 m)
 - **Hazard Risk Level:** `MODERATE` (GSI Score: 0.542)
-- **Execution Latency:** 0.353 seconds (Local Offline Pipeline)
+- **Execution Latency:** 0.222 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *Haemmig et al. (2014) / Round et al. (2017) / SAR Ablation Series*
 
 ### `drang_drung`: Drang-Drung Glacier Terminus
@@ -52,7 +52,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 3559 m (Ground Truth: 3555 m, Delta: +4 m)
 - **Hazard Risk Level:** `LOW_RISK` (GSI Score: 0.345)
-- **Execution Latency:** 0.481 seconds (Local Offline Pipeline)
+- **Execution Latency:** 0.450 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *NRSC Indus Basin Atlas / WIHG Cryosphere Surveys*
 
 ### `parkachik`: Parkachik Glacial Snout
@@ -63,7 +63,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 3236 m (Ground Truth: 3236 m, Delta: +0 m)
 - **Hazard Risk Level:** `MODERATE` (GSI Score: 0.568)
-- **Execution Latency:** 0.821 seconds (Local Offline Pipeline)
+- **Execution Latency:** 0.645 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *Mir et al. (2021) / Copernicus DEM & Sentinel-1 RTC Snout Audit*
 
 ### `rumbak`: Rumbak Glacial Lake
@@ -74,7 +74,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 5254 m (Ground Truth: 5254 m, Delta: +0 m)
 - **Hazard Risk Level:** `LOW_RISK` (GSI Score: 0.000)
-- **Execution Latency:** 0.078 seconds (Local Offline Pipeline)
+- **Execution Latency:** 0.069 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *August 2021 Field Reconnaissance / Drained Dry Lakebed Control*
 
 ### `phyang`: Phyang Glacial Lake
@@ -85,7 +85,7 @@
 - **Planimetric Agreement:** **100.0%** (Delta: +0.00 ha, Variance: +0.0%)
 - **Topographic Elevation:** 5419 m (Ground Truth: 5419 m, Delta: +0 m)
 - **Hazard Risk Level:** `MODERATE` (GSI Score: 0.527)
-- **Execution Latency:** 0.125 seconds (Local Offline Pipeline)
+- **Execution Latency:** 0.104 seconds (Local Offline Pipeline)
 - **Provenance / Citation:** *2006 Flash Flood Audit / Non-Damming Cirque Control*
 
 ---

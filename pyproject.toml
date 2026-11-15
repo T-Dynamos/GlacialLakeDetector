@@ -24,6 +24,13 @@ dependencies = [
     "shapely>=2.0.0",
     "matplotlib>=3.7.0",
     "rich>=13.0.0",
+    "kivy>=2.3.0",
+    "kivymd>=2.0.0",
+    "kivy-garden.matplotlib>=0.1.0",
+    "kivy-garden.mapview>=1.0.6",
+    "asynckivy>=0.6.4",
+    "vispy>=0.14.0",
+    "PyQt6>=6.5.0",
 ]
 
 [project.scripts]

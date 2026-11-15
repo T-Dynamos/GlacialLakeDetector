@@ -122,58 +122,53 @@ class AnalysisScreen(MDScreen):
         root.add_widget(header_box)
 
         # ---------------------------------------------------------
-        # Section 1: Telemetry KPI Cards Row
+        # Section 1: Streamlined Telemetry KPI Cards Row
         # ---------------------------------------------------------
         kpi_row = MDBoxLayout(
             orientation="horizontal",
             size_hint=(1, None),
-            height=78,
-            spacing=10
+            height=dp(48),
+            spacing=dp(8)
         )
 
         # Card 1: Lake Count
-        self.card_lakes = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        self.card_lakes = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=0, radius=[dp(6), dp(6), dp(6), dp(6)])
         apply_card_style(self.card_lakes)
         self.card_lakes.add_widget(MDLabel(text="LAKES DETECTED", font_style="Label", role="small", halign="center"))
-        self.kpi_lake_count = MDLabel(text="--", font_style="Headline", role="small", halign="center", bold=True)
+        self.kpi_lake_count = MDLabel(text="--", font_style="Title", role="medium", halign="center", bold=True)
         self.card_lakes.add_widget(self.kpi_lake_count)
-        self.card_lakes.add_widget(MDLabel(text="water bodies", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_lakes)
 
         # Card 2: Clean Surface Area
-        self.card_area = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        self.card_area = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=0, radius=[dp(6), dp(6), dp(6), dp(6)])
         apply_card_style(self.card_area)
         self.card_area.add_widget(MDLabel(text="CLEAN AREA (HA)", font_style="Label", role="small", halign="center"))
-        self.kpi_clean_area = MDLabel(text="-- ha", font_style="Headline", role="small", halign="center", bold=True)
+        self.kpi_clean_area = MDLabel(text="-- ha", font_style="Title", role="medium", halign="center", bold=True)
         self.card_area.add_widget(self.kpi_clean_area)
-        self.card_area.add_widget(MDLabel(text="sub-pixel contour", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_area)
 
         # Card 3: Cliff Shadows Cut %
-        self.card_shadow = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        self.card_shadow = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=0, radius=[dp(6), dp(6), dp(6), dp(6)])
         apply_card_style(self.card_shadow)
         self.card_shadow.add_widget(MDLabel(text="SHADOWS ELIMINATED", font_style="Label", role="small", halign="center"))
-        self.kpi_shadow_cut = MDLabel(text="-- %", font_style="Headline", role="small", halign="center", bold=True)
+        self.kpi_shadow_cut = MDLabel(text="-- %", font_style="Title", role="medium", halign="center", bold=True)
         self.card_shadow.add_widget(self.kpi_shadow_cut)
-        self.card_shadow.add_widget(MDLabel(text="false positives cut", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_shadow)
 
         # Card 4: AHP Susceptibility Level
-        self.card_risk = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        self.card_risk = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=0, radius=[dp(6), dp(6), dp(6), dp(6)])
         apply_card_style(self.card_risk)
         self.card_risk.add_widget(MDLabel(text="AHP SUSCEPTIBILITY", font_style="Label", role="small", halign="center"))
-        self.kpi_risk_level = MDLabel(text="STANDBY", font_style="Headline", role="small", halign="center", bold=True)
+        self.kpi_risk_level = MDLabel(text="STANDBY", font_style="Title", role="medium", halign="center", bold=True)
         self.card_risk.add_widget(self.kpi_risk_level)
-        self.card_risk.add_widget(MDLabel(text="multi-criteria tier", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_risk)
 
         # Card 5: Elevation
-        self.card_elevation = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        self.card_elevation = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=0, radius=[dp(6), dp(6), dp(6), dp(6)])
         apply_card_style(self.card_elevation)
         self.card_elevation.add_widget(MDLabel(text="MEAN ELEVATION", font_style="Label", role="small", halign="center"))
-        self.kpi_elevation = MDLabel(text="-- m", font_style="Headline", role="small", halign="center", bold=True)
+        self.kpi_elevation = MDLabel(text="-- m", font_style="Title", role="medium", halign="center", bold=True)
         self.card_elevation.add_widget(self.kpi_elevation)
-        self.card_elevation.add_widget(MDLabel(text="Copernicus DEM", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_elevation)
 
         root.add_widget(kpi_row)
@@ -194,16 +189,16 @@ class AnalysisScreen(MDScreen):
             size_hint_x=0.64
         )
 
-        # View mode selector bar: Satellite Shoreline, 2D Diagnostic, 3D Relief, 3D Orbit
+        # Single Streamlined Cockpit View & Visualizer Action Bar
         view_bar = MDBoxLayout(
             orientation="horizontal",
             size_hint=(1, None),
-            height=38,
-            spacing=8
+            height=dp(38),
+            spacing=dp(6)
         )
         self.btn_view_sat = MDButton(
             MDButtonIcon(icon="satellite-variant"),
-            MDButtonText(text="Satellite Shoreline"),
+            MDButtonText(text="Satellite"),
             on_release=lambda *args: self.switch_view_mode("sat")
         )
         self.btn_view_2d = MDButton(
@@ -213,58 +208,28 @@ class AnalysisScreen(MDScreen):
         )
         self.btn_view_3d = MDButton(
             MDButtonIcon(icon="cube-outline"),
-            MDButtonText(text="3D Relief Hub"),
+            MDButtonText(text="3D Relief"),
             on_release=lambda *args: self.switch_view_mode("3d")
         )
         self.btn_view_ahp = MDButton(
             MDButtonIcon(icon="shield-alert-outline"),
-            MDButtonText(text="AHP Susceptibility"),
+            MDButtonText(text="AHP Risk"),
             on_release=lambda *args: self.switch_view_mode("ahp")
-        )
-        self.btn_view_orbit = MDButton(
-            MDButtonIcon(icon="rotate-3d-variant"),
-            MDButtonText(text="Launch 3D Window"),
-            on_release=lambda *args: self.open_interactive_vispy_window()
         )
         apply_button_style(self.btn_view_sat, "active")
         apply_button_style(self.btn_view_2d, "inactive")
         apply_button_style(self.btn_view_3d, "inactive")
         apply_button_style(self.btn_view_ahp, "inactive")
-        apply_button_style(self.btn_view_orbit, "action")
+
         view_bar.add_widget(self.btn_view_sat)
         view_bar.add_widget(self.btn_view_2d)
         view_bar.add_widget(self.btn_view_3d)
         view_bar.add_widget(self.btn_view_ahp)
-        view_bar.add_widget(self.btn_view_orbit)
-        left_col.add_widget(view_bar)
 
-        # Main visual container
-        self.view_container = MDBoxLayout(size_hint=(1, 1))
+        # Flexible spacer pushing zoom controls to the right
+        view_bar.add_widget(MDBoxLayout(size_hint_x=1))
 
-        # Satellite View Scatter Image (with pan/zoom)
-        self.scatter_sat = ScatterLayout(do_rotation=False)
-        self.image_sat = Image(
-            fit_mode="contain",
-            size_hint=(1, 1)
-        )
-        self.scatter_sat.add_widget(self.image_sat)
-
-        # 2D Diagnostic Container (Interactive Kivy Matplotlib Widget + Zoom Control Bar)
-        # Inherits from StencilBox to guarantee rendering never escapes or draws over other UI panels
-        self.container_2d = StencilBox(
-            orientation="vertical",
-            spacing=dp(6),
-            size_hint=(1, 1)
-        )
-
-        # Matplotlib Interactive Zoom Control Bar (Icon-only buttons)
-        zoom_bar_2d = MDBoxLayout(
-            orientation="horizontal",
-            size_hint=(1, None),
-            height=dp(36),
-            spacing=dp(8),
-            padding=[dp(4), 0, dp(4), 0]
-        )
+        # Icon-Only Matplotlib Zoom & Canvas Action Controls (Always Visible in Cockpit Toolbar)
         self.btn_zoom_in_2d = MDIconButton(
             icon="magnify-plus-outline",
             style="standard",
@@ -289,22 +254,37 @@ class AnalysisScreen(MDScreen):
         apply_icon_button_style(self.btn_zoom_out_2d, "secondary")
         apply_icon_button_style(self.btn_zoom_reset_2d, "secondary")
         apply_icon_button_style(self.btn_zoom_fit_2d, "secondary")
-        zoom_bar_2d.add_widget(self.btn_zoom_in_2d)
-        zoom_bar_2d.add_widget(self.btn_zoom_out_2d)
-        zoom_bar_2d.add_widget(self.btn_zoom_reset_2d)
-        zoom_bar_2d.add_widget(self.btn_zoom_fit_2d)
 
-        lbl_mpl_tag = MDLabel(
-            text="[color=#00e5ff]MATPLOTLIB[/color] 2D Diagnostic Canvas",
-            markup=True,
-            font_style="Label",
-            role="medium",
-            adaptive_size=True,
-            pos_hint={"center_y": 0.5}
+        view_bar.add_widget(self.btn_zoom_in_2d)
+        view_bar.add_widget(self.btn_zoom_out_2d)
+        view_bar.add_widget(self.btn_zoom_reset_2d)
+        view_bar.add_widget(self.btn_zoom_fit_2d)
+
+        self.btn_view_orbit = MDButton(
+            MDButtonIcon(icon="rotate-3d-variant"),
+            MDButtonText(text="3D Window"),
+            on_release=lambda *args: self.open_interactive_vispy_window()
         )
-        zoom_bar_2d.add_widget(lbl_mpl_tag)
-        self.container_2d.add_widget(zoom_bar_2d)
+        apply_button_style(self.btn_view_orbit, "action")
+        view_bar.add_widget(self.btn_view_orbit)
+        left_col.add_widget(view_bar)
 
+        # Main visual container
+        self.view_container = MDBoxLayout(size_hint=(1, 1))
+
+        # Satellite View Scatter Image (with pan/zoom)
+        self.scatter_sat = ScatterLayout(do_rotation=False)
+        self.image_sat = Image(
+            fit_mode="contain",
+            size_hint=(1, 1)
+        )
+        self.scatter_sat.add_widget(self.image_sat)
+
+        # 2D Diagnostic Container (Interactive Kivy Matplotlib Widget + Stencil Clipping)
+        self.container_2d = StencilBox(
+            orientation="vertical",
+            size_hint=(1, 1)
+        )
         self.scatter_2d = ScatterLayout(do_rotation=False, size_hint=(1, 1))
         self.canvas_matplotlib_widget = None
         self.image_2d = Image(
@@ -944,23 +924,28 @@ class AnalysisScreen(MDScreen):
         self.append_log(f"[ERROR] Pipeline execution failed: {error_message}")
 
     def zoom_in_2d(self):
-        """Zooms into the 2D diagnostic plot."""
-        if hasattr(self, "scatter_2d"):
-            self.scatter_2d.scale = min(6.0, self.scatter_2d.scale * 1.25)
+        """Zooms into the active 2D visualizer (diagnostic plot or satellite image)."""
+        target = self.scatter_2d if self.active_view_mode == "2d" else getattr(self, "scatter_sat", None)
+        if target is not None:
+            target.scale = min(6.0, target.scale * 1.25)
 
     def zoom_out_2d(self):
-        """Zooms out of the 2D diagnostic plot."""
-        if hasattr(self, "scatter_2d"):
-            self.scatter_2d.scale = max(0.3, self.scatter_2d.scale / 1.25)
+        """Zooms out of the active 2D visualizer (diagnostic plot or satellite image)."""
+        target = self.scatter_2d if self.active_view_mode == "2d" else getattr(self, "scatter_sat", None)
+        if target is not None:
+            target.scale = max(0.3, target.scale / 1.25)
 
     def reset_zoom_2d(self):
-        """Resets the 2D diagnostic zoom scale and viewport position."""
-        if hasattr(self, "scatter_2d"):
+        """Resets the 2D visualizer zoom scale and viewport position."""
+        if hasattr(self, "scatter_2d") and self.scatter_2d:
             self.scatter_2d.scale = 1.0
             self.scatter_2d.pos = (0, 0)
+        if hasattr(self, "scatter_sat") and self.scatter_sat:
+            self.scatter_sat.scale = 1.0
+            self.scatter_sat.pos = (0, 0)
 
     def fit_view_2d(self):
-        """Fits the 2D diagnostic plot cleanly into the workspace viewport."""
+        """Fits the active 2D visualizer cleanly into the workspace viewport."""
         self.reset_zoom_2d()
 
     def update_2d_diagnostic_matplotlib(self, plot_path: str):
@@ -1021,6 +1006,14 @@ class AnalysisScreen(MDScreen):
         apply_button_style(self.btn_view_3d, "active" if mode == "3d" else "inactive")
         apply_button_style(self.btn_view_ahp, "active" if mode == "ahp" else "inactive")
         apply_button_style(self.btn_view_orbit, "action")
+
+        # Contextually update zoom button active styling based on view mode
+        is_2d_view = mode in ("sat", "2d")
+        for btn in (self.btn_zoom_in_2d, self.btn_zoom_out_2d, self.btn_zoom_reset_2d, self.btn_zoom_fit_2d):
+            if hasattr(btn, "opacity"):
+                btn.opacity = 1.0 if is_2d_view else 0.35
+            if hasattr(btn, "disabled"):
+                btn.disabled = not is_2d_view
 
         if mode == "sat":
             self.view_container.add_widget(self.scatter_sat)

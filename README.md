@@ -66,9 +66,13 @@ Requires Python 3.10 or later and GDAL runtime dependencies.
 git clone https://github.com/T-Dynamos/GlacialLakeDetector.git
 cd GlacialLakeDetector
 
-# Install dependencies
+# Install all dependencies (core processing and interactive desktop GUI)
 pip install -r requirements.txt
 ```
+
+#### Dependencies
+- **Core Geospatial & Science**: `numpy`, `rasterio`, `scipy`, `shapely`, `matplotlib`, `rich`
+- **Desktop GUI & 3D Visualizer**: `kivy`, `kivymd`, `kivy-garden.matplotlib`, `kivy-garden.mapview`, `asynckivy`, `vispy`, `PyQt6`
 
 ### 2. Interactive Desktop GUI
 

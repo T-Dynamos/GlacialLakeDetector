@@ -45,6 +45,7 @@ venv.bak/
 # Logs & Temporary files
 *.log
 tmp/
+cache/
 .cache/
 .pytest_cache/
 detected_lakes*

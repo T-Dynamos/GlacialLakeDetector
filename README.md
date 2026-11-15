@@ -23,9 +23,10 @@
 6. [Installation & Requirements](#6-installation--requirements)
 7. [Dual Storage Architecture: Instant Offline Mode vs. Live Online Streaming](#7-dual-storage-architecture-instant-offline-mode-vs-live-online-streaming)
 8. [Command-Line Interface (CLI) Guide](#8-command-line-interface-cli-guide)
-9. [Python API Quickstart](#9-python-api-quickstart)
-10. [Validation Benchmarks & Results](#10-validation-benchmarks--results)
-11. [Remote Sensing APIs & Design Decisions](#11-remote-sensing-apis--design-decisions)
+9. [Interactive Desktop GUI (KivyMD & VisPy)](#9-interactive-desktop-gui-kivymd--vispy)
+10. [Python API Quickstart](#10-python-api-quickstart)
+11. [Validation Benchmarks & Results](#11-validation-benchmarks--results)
+12. [Remote Sensing APIs & Design Decisions](#12-remote-sensing-apis--design-decisions)
 
 ---
 
@@ -283,7 +284,52 @@ python3 -m glof_watch.cli \
 
 ---
 
-## 9. Python API Quickstart
+## 9. Interactive Desktop GUI (KivyMD & VisPy)
+
+GLOF-Watch includes a full-featured, hardware-accelerated workstation interface built on **KivyMD 2.0 (Material Design 3)**, **Kivy 3.0**, and **VisPy 0.17 (OpenGL 4.6)**.
+
+### Launching the GUI
+```bash
+# Launch via CLI option
+python3 -m glof_watch.cli --gui
+
+# Or direct module launch
+python3 -m glof_watch.ui.app
+```
+
+### Core GUI Capabilities
+1. **Trans-Himalayan MapView & Bounding Box Reticle (`MapScreen`)**:
+   - Interactive slippy map initialized over Ladakh ($34.2^\circ\text{N}, 77.6^\circ\text{E}$).
+   - Live coordinates HUD, zoom level, and ground resolution scale ($m/\text{px}$).
+   - Instant target preset jumping (Gya, Kyagar, Drang-Drung, Rumbak, Phyang, Parkachik, plus 4 regional corridors).
+   - Tactical bounding box reticle overlay with corner brackets, center crosshairs, and live dimension readout ($W \times H\text{ km}$, $\text{area km}^2$).
+   - Direct nudge and resize controls (▲ N, ▼ S, ◄ W, ► E, +/-, Reset).
+   - "ANALYZE SELECTED AOI" action button.
+
+2. **Real-Time Detection & 3D Terrain Analysis (`AnalysisScreen`)**:
+   - Asynchronous execution in background worker thread (UI stays completely fluid at 60 FPS).
+   - Non-blocking step progress bar and mission telemetry log stream (Steps 1–8).
+   - Live KPI cards: Lakes Detected, Exact Clean Area (ha), Cliff Shadows Cut (%), GLOF Hazard Level (`HIGH_ALERT`, `MODERATE`, `LOW_RISK`), and Mean Lake Elevation (m).
+   - **Dual 2D / 3D Visualization Switcher**:
+     - *2D View*: Interactive pan/zoom of the 4-panel multi-modal diagnostic figure (DEM relief, SAR $\sigma^0$, specularity mask, Sentinel-2 10m shoreline overlay).
+     - *3D View*: Hardware-accelerated VisPy 3D Digital Elevation Model with normalized terrain relief, mountain colormap, and cyan water draping baked into a Kivy Texture.
+     - *Stand-alone 3D Window*: Button to launch an independent 60 FPS VisPy OpenGL orbit window with mouse drag rotation (`TurntableCamera`), tilt, pan, and zoom.
+   - One-click GeoJSON export and cross-check navigation.
+
+3. **Glacial Lake Search & Benchmark Inventory Cross-Check (`SearchScreen`)**:
+   - Multi-modal search bar supporting GPS coordinates (e.g. `"33.62, 77.61"`) or keyword text (`"Kyagar"`, `"Gya"`, `"Zanskar"`).
+   - Adjustable geodesic search radius slider ($5\text{ km}$ to $100\text{ km}$).
+   - Catalog of 18 verified Trans-Himalayan benchmark outburst lakes and high-altitude tarns.
+   - **Automated Cross-Check Engine**: Evaluates pipeline detections against known baseline inventories using Haversine centroid offset and surface area variance, issuing verification badges:
+     - `VERIFIED_HISTORICAL_MATCH` (offset $< 2\text{ km}$, area within $\pm 30\%$)
+     - `EXPANDED_LAKE` (detected area $> 25\%$ above baseline)
+     - `HISTORICAL_OUTBURST_REMNANT` (outburst site breach scar)
+     - `NEW_UNRECORDED_LAKE` (offset $> 5\text{ km}$ from known catalogs)
+   - "Inspect on Map" button to automatically center MapView on the selected lake.
+
+---
+
+## 10. Python API Quickstart
 
 ### Single Target Detection:
 ```python
@@ -320,7 +366,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ---
 
-## 10. Validation Benchmarks & Results
+## 11. Validation Benchmarks & Results
 
 ### Visual Benchmark 1: Large Regional Scan ($900\text{ km}^2$ Upper Indus Corridor)
 ![Large Regional Scan](assets/large_regional_detection_plot.png)
@@ -340,7 +386,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ---
 
-## 11. Remote Sensing APIs & Design Decisions
+## 12. Remote Sensing APIs & Design Decisions
 
 | Component | Technical Implementation | Rationale |
 | :--- | :--- | :--- |

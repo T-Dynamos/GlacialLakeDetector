@@ -36,7 +36,8 @@ def run_detection_for_bbox(
     target_id: Optional[str] = None,
     date_range: Optional[str] = None,
     force_online: bool = False,
-    force_offline: bool = False
+    force_offline: bool = False,
+    progress_callback: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Executes the end-to-end GLOF-Watch detection pipeline for a single bounding box.
@@ -53,6 +54,11 @@ def run_detection_for_bbox(
     def log_step(step_num: int, title: str, advance: int = 0):
         timestamp = time.strftime("%H:%M:%S")
         msg = f"[{timestamp}] [Step {step_num}/{total_pipeline_steps}] {title}"
+        if progress_callback is not None:
+            try:
+                progress_callback(step_num, msg)
+            except Exception:
+                pass
         if progress and task_id is not None:
             progress.update(task_id, description=f"[cyan]{name}:[/cyan] [Step {step_num}/{total_pipeline_steps}] {title}", advance=advance)
         elif verbose:
@@ -233,7 +239,9 @@ def run_detection_for_bbox(
         "geojson": final_geojson,
         "plot_path": saved_plot,
         "stats": final_stats,
-        "metadata": metadata
+        "metadata": metadata,
+        "dem_arr": dem_arr,
+        "lake_mask": refined_lake_mask
     }
 
 def run_multithreaded_pipeline(

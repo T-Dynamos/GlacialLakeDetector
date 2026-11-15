@@ -120,6 +120,11 @@ def main():
         choices=["all", "presets", "dem"],
         help="Download and cache data to offline disk (/run/media/tdynamos/Secondary/DATA/GLACIAL_LAKE)"
     )
+    group.add_argument(
+        "--gui",
+        action="store_true",
+        help="Launch the interactive KivyMD desktop GUI with MapView, 3D VisPy terrain, and lake inventory search"
+    )
     
     parser.add_argument("--name", type=str, default="User_AOI", help="Descriptive name for custom bounding box")
     parser.add_argument("--basin", type=str, default="Trans-Himalayan Basin", help="Basin or river name")
@@ -132,6 +137,12 @@ def main():
     parser.add_argument("--online", action="store_true", help="Force online mode streaming directly from STAC API")
 
     args = parser.parse_args()
+
+    # --- Mode -2: Interactive Desktop GUI ---
+    if args.gui:
+        from .ui.app import main as launch_gui
+        launch_gui()
+        return
 
     # --- Mode -1: Download Offline Data ---
     if args.download_offline:

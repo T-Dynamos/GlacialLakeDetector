@@ -46,7 +46,16 @@ glof_watch/
 ├── visualizer.py    # [Subagent 5]: 4-panel diagnostic figure rendering with adaptive basin zoom & vector overlays
 ├── downloader.py    # Offline disk pre-caching engine with rate-limit exponential backoff
 ├── pipeline.py      # [Orchestrator]: Single & Multithreaded execution coordinator
-└── cli.py           # Production CLI interface with Rich step logging and telemetry
+├── cli.py           # Production CLI interface with Rich step logging and telemetry
+└── ui/              # [Desktop GUI Suite]: KivyMD 2.0 & VisPy 0.17 Interactive Workstation
+    ├── app.py             # MDApp coordinator, dark Material 3 theme & top navigation bar
+    ├── mapview_compat.py  # Runtime compatibility shim for Kivy Garden MapView
+    ├── vispy_3d.py        # Hardware-accelerated 3D terrain surface mesh & 60fps orbit canvas
+    ├── inventory.py       # Trans-Himalayan benchmark lake database & cross-check engine
+    └── screens/
+        ├── map_screen.py      # Trans-Himalayan MapView & tactical bounding box reticle
+        ├── analysis_screen.py # Real-time async pipeline runner, KPI cards & 2D/3D visualizer
+        └── search_screen.py   # Coordinate radius search & automated ground-truth verification
 ```
 
 ### Module Responsibilities:

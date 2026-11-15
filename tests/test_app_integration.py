@@ -160,6 +160,15 @@ class TestAppIntegration(unittest.TestCase):
         )
         self.assertIn(screen.scatter_2d, screen.container_2d.children)
 
+        # Verify icon-only zoom buttons and StencilView clipping boundary
+        from kivy.uix.stencilview import StencilView
+        from kivymd.uix.button import MDIconButton
+        self.assertIsInstance(screen.container_2d, StencilView)
+        self.assertIsInstance(screen.btn_zoom_in_2d, MDIconButton)
+        self.assertIsInstance(screen.btn_zoom_out_2d, MDIconButton)
+        self.assertIsInstance(screen.btn_zoom_reset_2d, MDIconButton)
+        self.assertIsInstance(screen.btn_zoom_fit_2d, MDIconButton)
+
         # Test interactive zoom controls
         initial_scale = screen.scatter_2d.scale
         screen.zoom_in_2d()

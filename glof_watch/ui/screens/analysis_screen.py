@@ -17,6 +17,7 @@ from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.stencilview import StencilView
 from kivy.metrics import dp
 
 try:
@@ -31,18 +32,23 @@ from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon, MDIconButton
 from kivymd.uix.progressindicator import MDLinearProgressIndicator
 
 from glof_watch.pipeline import run_detection_for_bbox
 from glof_watch.ui.vispy_3d import render_3d_terrain_rgba, launch_interactive_vispy_window
-from glof_watch.ui.theme import apply_button_style, apply_card_style
+from glof_watch.ui.theme import apply_button_style, apply_card_style, apply_icon_button_style
 from glof_watch.susceptibility import (
     get_site_susceptibility,
     GLOFSusceptibilityEngine,
     CRITERIA_NAMES,
     CRITERIA_KEYS
 )
+
+
+class StencilBox(MDBoxLayout, StencilView):
+    """Layout container that strictly clips all child rendering inside its allocated bounding box."""
+    pass
 
 
 class AnalysisScreen(MDScreen):
@@ -244,47 +250,59 @@ class AnalysisScreen(MDScreen):
         self.scatter_sat.add_widget(self.image_sat)
 
         # 2D Diagnostic Container (Interactive Kivy Matplotlib Widget + Zoom Control Bar)
-        self.container_2d = MDBoxLayout(
+        # Inherits from StencilBox to guarantee rendering never escapes or draws over other UI panels
+        self.container_2d = StencilBox(
             orientation="vertical",
             spacing=dp(6),
             size_hint=(1, 1)
         )
 
-        # Matplotlib Interactive Zoom Control Bar
+        # Matplotlib Interactive Zoom Control Bar (Icon-only buttons)
         zoom_bar_2d = MDBoxLayout(
             orientation="horizontal",
             size_hint=(1, None),
-            height=dp(34),
-            spacing=dp(6)
+            height=dp(36),
+            spacing=dp(8),
+            padding=[dp(4), 0, dp(4), 0]
         )
-        self.btn_zoom_in_2d = MDButton(
-            MDButtonIcon(icon="magnify-plus-outline"),
-            MDButtonText(text="Zoom In"),
+        self.btn_zoom_in_2d = MDIconButton(
+            icon="magnify-plus-outline",
+            style="standard",
             on_release=lambda *args: self.zoom_in_2d()
         )
-        self.btn_zoom_out_2d = MDButton(
-            MDButtonIcon(icon="magnify-minus-outline"),
-            MDButtonText(text="Zoom Out"),
+        self.btn_zoom_out_2d = MDIconButton(
+            icon="magnify-minus-outline",
+            style="standard",
             on_release=lambda *args: self.zoom_out_2d()
         )
-        self.btn_zoom_reset_2d = MDButton(
-            MDButtonIcon(icon="restore"),
-            MDButtonText(text="Reset View"),
+        self.btn_zoom_reset_2d = MDIconButton(
+            icon="restore",
+            style="standard",
             on_release=lambda *args: self.reset_zoom_2d()
         )
-        self.btn_zoom_fit_2d = MDButton(
-            MDButtonIcon(icon="fit-to-screen-outline"),
-            MDButtonText(text="Fit Screen"),
+        self.btn_zoom_fit_2d = MDIconButton(
+            icon="fit-to-screen-outline",
+            style="standard",
             on_release=lambda *args: self.fit_view_2d()
         )
-        apply_button_style(self.btn_zoom_in_2d, "secondary")
-        apply_button_style(self.btn_zoom_out_2d, "secondary")
-        apply_button_style(self.btn_zoom_reset_2d, "secondary")
-        apply_button_style(self.btn_zoom_fit_2d, "secondary")
+        apply_icon_button_style(self.btn_zoom_in_2d, "secondary")
+        apply_icon_button_style(self.btn_zoom_out_2d, "secondary")
+        apply_icon_button_style(self.btn_zoom_reset_2d, "secondary")
+        apply_icon_button_style(self.btn_zoom_fit_2d, "secondary")
         zoom_bar_2d.add_widget(self.btn_zoom_in_2d)
         zoom_bar_2d.add_widget(self.btn_zoom_out_2d)
         zoom_bar_2d.add_widget(self.btn_zoom_reset_2d)
         zoom_bar_2d.add_widget(self.btn_zoom_fit_2d)
+
+        lbl_mpl_tag = MDLabel(
+            text="[color=#00e5ff]MATPLOTLIB[/color] 2D Diagnostic Canvas",
+            markup=True,
+            font_style="Label",
+            role="medium",
+            adaptive_size=True,
+            pos_hint={"center_y": 0.5}
+        )
+        zoom_bar_2d.add_widget(lbl_mpl_tag)
         self.container_2d.add_widget(zoom_bar_2d)
 
         self.scatter_2d = ScatterLayout(do_rotation=False, size_hint=(1, 1))

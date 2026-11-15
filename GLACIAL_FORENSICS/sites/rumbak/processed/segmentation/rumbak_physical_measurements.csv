@@ -1,0 +1,13 @@
+Metric,Value,Unit,Notes
+Pre-event Surface Area (ha),2.04,ha,Pre-event lake surface on 15 Aug 2021
+Pre-event Surface Area (km²),0.0204,km²,UTM Zone 43N
+Post-event Remnant Area (ha),0.00,ha,Remnant pond on 27 Aug 2021
+Post-event Remnant Area (km²),0.0000,km²,UTM Zone 43N
+Net Area Change ΔA (ha),-2.04,ha,Water surface area drained during outburst
+Percentage Area Loss (%),-100.00%,%,Complete ~100% surface water evacuation
+Pre-event Perimeter (m),780.0,m,Lake boundary perimeter
+Post-event Perimeter (m),0.0,m,Residual lake perimeter
+Moraine Breach Shoreline Retreat (m),150.0,m,Northward retreat along breach axis
+Lake Elevation (m a.s.l.),5268,m,High hanging cirque elevation
+Downstream Village Elevation (m a.s.l.),3870,m,Rumbak settlement
+Total Vertical Flood Drop (m),1398,m,Vertical drop over 7.0 km flood channel

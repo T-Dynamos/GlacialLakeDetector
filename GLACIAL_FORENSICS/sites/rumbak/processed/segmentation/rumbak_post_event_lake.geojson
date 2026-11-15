@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "rumbak_post_event_lake",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "feature": "post_event_lake", "area_ha": 0.0, "perimeter_m": 0.0 }, "geometry": { "type": "Polygon", "coordinates": [ ] } }
+]
+}

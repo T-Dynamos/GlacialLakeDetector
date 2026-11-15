@@ -453,8 +453,8 @@ class MapScreen(MDScreen):
             style="outlined",
             pos_hint={"x": 0.02, "y": 0.03},
             size_hint=(None, None),
-            width=dp(420),
-            height=dp(148),
+            width=dp(470),
+            height=dp(152),
             padding=[dp(16), dp(10), dp(16), dp(10)],
         )
         apply_card_style(card)
@@ -499,9 +499,9 @@ class MapScreen(MDScreen):
         # -------------------------------------------------------------
         nudge_row = MDBoxLayout(
             orientation="horizontal",
-            spacing=dp(5),
+            spacing=dp(6),
             size_hint=(1, None),
-            height=dp(32),
+            height=dp(34),
             pos_hint={"center_x": 0.5}
         )
 
@@ -517,10 +517,14 @@ class MapScreen(MDScreen):
 
         for label_text, func in nudge_actions:
             btn = MDButton(
-                MDButtonText(text=f"[b]{label_text}[/b]", font_size="11sp"),
+                MDButtonText(
+                    text=f"[b]{label_text}[/b]",
+                    font_size="11sp",
+                    pos_hint={"center_x": 0.5, "center_y": 0.5}
+                ),
                 theme_width="Custom",
                 size_hint_x=1.0 / len(nudge_actions),
-                height=dp(32)
+                height=dp(34)
             )
             apply_button_style(btn, "secondary")
             btn.bind(on_release=lambda *a, f=func: f())

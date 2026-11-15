@@ -15,6 +15,7 @@ Features:
 """
 
 import os
+import sys
 os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
 os.environ.setdefault("QT_API", "pyqt6")
 
@@ -579,7 +580,7 @@ def render_3d_terrain_rgba(
     height: Optional[int] = None,
     dem: Optional[np.ndarray] = None,
     satellite_img: Optional[np.ndarray] = None,
-    isolated: bool = False,
+    isolated: bool = True,
     **kwargs: Any
 ) -> np.ndarray:
     """
@@ -681,9 +682,16 @@ def _standalone_window_process_worker(
 ) -> None:
     """Worker process entrypoint for isolated multi-process 3D window."""
     import os
-    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+    if "QT_QPA_PLATFORM" not in os.environ:
+        if os.environ.get("XDG_SESSION_TYPE") == "wayland" or "WAYLAND_DISPLAY" in os.environ:
+            os.environ["QT_QPA_PLATFORM"] = "wayland;xcb"
+        else:
+            os.environ["QT_QPA_PLATFORM"] = "xcb"
     os.environ.setdefault("QT_API", "pyqt6")
+
     try:
+        from vispy import app
+        app.use_app("pyqt6")
         canvas, _, _ = create_3d_terrain_scene(
             dem_arr=dem_arr,
             lake_mask=lake_mask,
@@ -699,6 +707,13 @@ def _standalone_window_process_worker(
             title=title,
             satellite_img=satellite_img
         )
+        if hasattr(canvas, "native") and canvas.native is not None:
+            try:
+                canvas.native.show()
+                canvas.native.raise_()
+                canvas.native.activateWindow()
+            except Exception:
+                pass
         app.run()
     except (KeyboardInterrupt, SystemExit):
         pass
@@ -718,7 +733,7 @@ def launch_interactive_vispy_window(
     colormap: Union[str, Colormap] = "terrain",
     bgcolor: Any = "#0b0f19",
     block: bool = True,
-    run_in_background: bool = False,
+    run_in_background: Optional[bool] = None,
     dem: Optional[np.ndarray] = None,
     satellite_img: Optional[np.ndarray] = None,
     **kwargs: Any
@@ -744,7 +759,7 @@ def launch_interactive_vispy_window(
         run_in_background: If True, launches the window in an isolated background process.
 
     Returns:
-        canvas instance if block=False, or multiprocessing.Process if run_in_background=True.
+        canvas instance if block=False and in-process, or multiprocessing.Process if run_in_background=True.
     """
     if dem_arr is None:
         dem_arr = dem
@@ -753,7 +768,12 @@ def launch_interactive_vispy_window(
 
     cmap_name = colormap if isinstance(colormap, str) else "terrain"
 
-    if run_in_background:
+    # Automatically enforce process isolation if Kivy or foreign GL context is present
+    is_kivy_active = "kivy" in sys.modules or "kivy.core.window" in sys.modules
+    if run_in_background is None:
+        run_in_background = is_kivy_active or bool(block is False)
+
+    if run_in_background or is_kivy_active:
         ctx = multiprocessing.get_context("spawn")
         p = ctx.Process(
             target=_standalone_window_process_worker,
@@ -770,7 +790,7 @@ def launch_interactive_vispy_window(
                 bgcolor,
                 satellite_img
             ),
-            daemon=True
+            daemon=False
         )
         p.start()
         return p

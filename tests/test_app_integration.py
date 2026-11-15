@@ -173,15 +173,21 @@ class TestAppIntegration(unittest.TestCase):
         self.assertEqual(rgba.shape[2], 4)
         self.assertEqual(rgba.dtype, np.uint8)
 
-        # Test interactive window launch with non-blocking canvas
-        canvas = launch_interactive_vispy_window(
+        # Test interactive window launch (isolated or canvas)
+        res = launch_interactive_vispy_window(
             dem_arr=dem,
             lake_mask=lake_mask,
             title="Test Window",
             block=False
         )
-        self.assertIsNotNone(canvas)
-        canvas.close()
+        self.assertIsNotNone(res)
+        if hasattr(res, "terminate"):
+            self.assertTrue(res.is_alive())
+            res.terminate()
+            res.join(timeout=1.0)
+            res.close()
+        elif hasattr(res, "close"):
+            res.close()
 
 
 if __name__ == "__main__":

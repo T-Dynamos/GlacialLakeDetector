@@ -70,14 +70,12 @@ def segment_exact_lake_boundaries(
     if optical_img is not None and optical_img.ndim == 3:
         H_grid, W_grid = optical_img.shape[0], optical_img.shape[1]
         use_optical = True
-        scale_factor = 1
     elif dem_arr.size <= 300_000:
         scale_factor = 3
         H_grid = dem_arr.shape[0] * scale_factor
         W_grid = dem_arr.shape[1] * scale_factor
         use_optical = False
     else:
-        scale_factor = 1
         H_grid = dem_arr.shape[0]
         W_grid = dem_arr.shape[1]
         use_optical = False
@@ -87,8 +85,8 @@ def segment_exact_lake_boundaries(
     dy_m = (max_lat - min_lat) * 111320.0 / H_grid
     pixel_area_ha_hi = (dx_m * dy_m) / 10000.0
 
-    # Upsample DEM and SAR arrays to high-resolution grid only if scale_factor > 1
-    if scale_factor > 1:
+    # Resample DEM and SAR arrays to working grid (W_grid, H_grid) whenever shapes differ
+    if (W_grid, H_grid) != (dem_arr.shape[1], dem_arr.shape[0]):
         dem_hi = cv2.resize(dem_arr, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
         slope_hi = cv2.resize(slope_deg, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
         vv_hi = cv2.resize(vv_db, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)

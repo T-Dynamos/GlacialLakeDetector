@@ -271,19 +271,21 @@ def test_prebuilt_watershed_segmenter_synthetic_accuracy():
     refined_mask = out["refined_lake_mask"]
     assert np.sum(refined_mask) > 0, "Refined lake mask must not be empty"
 
-    # Compute Intersection over Union (IoU) with synthetic ground truth
-    # Grid in segmenter was at scale_factor=3, so upsample true_lake to match
-    H_hi, W_hi = refined_mask.shape
-    y_hi, x_hi = np.ogrid[:H_hi, :W_hi]
-    cy_hi, cx_hi = H_hi // 2, W_hi // 2
-    r_hi = 15 * 3
-    true_lake_hi = ((x_hi - cx_hi)**2 + (y_hi - cy_hi)**2) <= (r_hi ** 2)
-
-    intersection = np.logical_and(refined_mask, true_lake_hi).sum()
-    union = np.logical_or(refined_mask, true_lake_hi).sum()
+    # Compute Intersection over Union (IoU) with synthetic ground truth on DEM grid
+    intersection = np.logical_and(refined_mask, true_lake).sum()
+    union = np.logical_or(refined_mask, true_lake).sum()
     iou = intersection / union if union > 0 else 0.0
 
-    assert iou >= 0.85, f"Segmentation IoU {iou:.3f} must exceed 0.85 against ground truth"
+    assert iou >= 0.90, f"Segmentation IoU {iou:.3f} must exceed 0.90 against ground truth"
+
+    # Also verify high-resolution sub-pixel mask
+    refined_mask_hi = out["refined_lake_mask_hi"]
+    H_hi, W_hi = refined_mask_hi.shape
+    y_hi, x_hi = np.ogrid[:H_hi, :W_hi]
+    cy_hi, cx_hi = H_hi // 2, W_hi // 2
+    true_lake_hi = ((x_hi - cx_hi)**2 + (y_hi - cy_hi)**2) <= ((15 * 3) ** 2)
+    iou_hi = np.logical_and(refined_mask_hi, true_lake_hi).sum() / np.logical_or(refined_mask_hi, true_lake_hi).sum()
+    assert iou_hi >= 0.90, f"Sub-pixel IoU {iou_hi:.3f} must exceed 0.90 against ground truth"
 
 
 def test_offline_speed_benchmark_all_targets(targets_catalog):

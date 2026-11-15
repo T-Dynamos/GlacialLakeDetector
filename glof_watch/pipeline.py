@@ -26,7 +26,7 @@ from .detector import detect_glacial_lakes
 console = Console()
 
 def run_detection_for_bbox(
-    bbox: List[float],
+    bbox: Optional[List[float]] = None,
     name: str = "AOI",
     basin: str = "Himalayan Basin",
     year: int = 2023,
@@ -48,9 +48,20 @@ def run_detection_for_bbox(
     t0 = time.time()
     total_pipeline_steps = 8 if plot_out else 7
 
-    # Determine date range if target has a specific preferred window
-    if not date_range and target_id and target_id in PRESET_TARGETS:
-        date_range = PRESET_TARGETS[target_id].get("date_range")
+    # Automatically resolve bbox, name, basin, date_range if target_id provided
+    if target_id and target_id in PRESET_TARGETS:
+        tinfo = PRESET_TARGETS[target_id]
+        if bbox is None:
+            bbox = tinfo.get("bbox")
+        if name == "AOI" and "name" in tinfo:
+            name = tinfo["name"]
+        if basin == "Himalayan Basin" and "basin" in tinfo:
+            basin = tinfo["basin"]
+        if not date_range and "date_range" in tinfo:
+            date_range = tinfo["date_range"]
+
+    if bbox is None:
+        raise ValueError("Either bbox or a recognized target_id must be provided to run_detection_for_bbox.")
 
     def log_step(step_num: int, title: str, advance: int = 0):
         timestamp = time.strftime("%H:%M:%S")

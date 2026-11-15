@@ -77,11 +77,47 @@ def search_stac(collection: str, bbox: List[float], datetime_range: Optional[str
                 continue
             raise
 
-def check_local_target_cache(target_id: Optional[str]) -> Optional[Tuple[Dict[str, Any], Dict[str, Any]]]:
-    """Checks if pre-cached GeoTIFFs exist in TARGETS_CACHE_DIR for the given target ID."""
+def check_local_target_cache(
+    target_id: Optional[str] = None,
+    bbox: Optional[List[float]] = None
+) -> Optional[Tuple[Dict[str, Any], Dict[str, Any]]]:
+    """
+    Checks if pre-cached GeoTIFFs exist in TARGETS_CACHE_DIR or local data repo.
+    Supports auto-resolving target_id from bbox if target_id is omitted.
+    """
+    if not target_id and bbox and len(bbox) >= 4:
+        c_lon = (bbox[0] + bbox[2]) / 2.0
+        c_lat = (bbox[1] + bbox[3]) / 2.0
+        try:
+            targets_data = load_targets()
+            candidates = {}
+            candidates.update(targets_data.get("focused_lakes", {}))
+            candidates.update(targets_data.get("regional_scan_areas", {}))
+            for tid, tinfo in candidates.items():
+                tbox = tinfo.get("bbox")
+                if tbox and len(tbox) >= 4:
+                    tc_lon = (tbox[0] + tbox[2]) / 2.0
+                    tc_lat = (tbox[1] + tbox[3]) / 2.0
+                    if abs(c_lon - tc_lon) < 0.05 and abs(c_lat - tc_lat) < 0.05:
+                        target_id = tid
+                        break
+        except Exception:
+            pass
+
     if not target_id:
         return None
+
     target_dir = os.path.join(TARGETS_CACHE_DIR, target_id)
+    if not os.path.exists(target_dir):
+        repo_fallback = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data",
+            "targets_cache",
+            target_id
+        )
+        if os.path.exists(repo_fallback):
+            target_dir = repo_fallback
+
     dem_path = os.path.join(target_dir, "dem.tif")
     vv_path = os.path.join(target_dir, "sar_vv.tif")
     vh_path = os.path.join(target_dir, "sar_vh.tif")
@@ -266,11 +302,11 @@ def harvest_all_data(
     """
     # 1. Check instant local target cache
     if not force_online:
-        cached = check_local_target_cache(target_id)
+        cached = check_local_target_cache(target_id, bbox=bbox)
         if cached is not None:
             return cached
 
-    if force_offline and target_id and not check_local_target_cache(target_id):
+    if force_offline and target_id and not check_local_target_cache(target_id, bbox=bbox):
         raise FileNotFoundError(f"Offline cache for target '{target_id}' not found in {TARGETS_CACHE_DIR}")
 
     # 2. Parallel fetch (DEM and SAR)

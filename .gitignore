@@ -52,5 +52,6 @@ detected_lakes*
 *_diagnostic.png
 data/*test*
 data/*offline*
+data/targets_cache
 
 

@@ -118,7 +118,15 @@ def apply_button_style(
     def _sync_children(*_):
         curr_fg = getattr(btn, "_glof_style_fg", fg)
         curr_icon_fg = getattr(btn, "_glof_style_icon_fg", icon_fg)
-        for child in btn.children:
+        targets = list(btn.children)
+        btn_text = getattr(btn, "_button_text", None)
+        if btn_text and btn_text not in targets:
+            targets.append(btn_text)
+        btn_icon = getattr(btn, "_button_icon", None)
+        if btn_icon and btn_icon not in targets:
+            targets.append(btn_icon)
+
+        for child in targets:
             if isinstance(child, MDButtonText):
                 child.theme_text_color = "Custom"
                 child.text_color = curr_fg

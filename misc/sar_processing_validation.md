@@ -1,9 +1,9 @@
 # GLACIAL FORENSICS — SCIENTIFIC VALIDATION REPORT: SAR PROCESSING PIPELINE
 
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Target Scope:** Multi-temporal C-band Synthetic Aperture Radar (SAR) Pipeline across Six Himalayan / Trans-Karakoram Study Sites  
-**Reference Document:** [GLACIAL_FORENSICS_SIX_SITES_REPORT](file:///home/aakashi/.gemini/antigravity-cli/brain/5dc0adcb-8b85-4274-8cbc-9c21cdbabda2/SIX_SITES_GLACIAL_FORENSICS_REPORT.md)
+**Reference Document:** [scientific_validation_audit.md](scientific_validation_audit.md)
 
 ---
 

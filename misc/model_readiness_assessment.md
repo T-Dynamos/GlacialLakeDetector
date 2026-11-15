@@ -1,16 +1,16 @@
 # GLACIAL FORENSICS — MODEL READINESS ASSESSMENT GATE
 
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Document Purpose:** Pre-implementation Scientific Readiness Evaluation for Three Independent GLOF Objectives:
 1. **GLOF Susceptibility Scoring**
 2. **Outburst Probability Estimation**
 3. **Downstream Danger Modelling**
 **Reference Files:**
-- [scientific_validation_audit.md](file:///home/aakashi/GlacialLakeDetector/scientific_validation_audit.md)
-- [claim_evidence_register.csv](file:///home/aakashi/GlacialLakeDetector/claim_evidence_register.csv)
-- [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv)
-- [historical_event_label_register.csv](file:///home/aakashi/GlacialLakeDetector/historical_event_label_register.csv)
+- [scientific_validation_audit.md](scientific_validation_audit.md)
+- [claim_evidence_register.csv](claim_evidence_register.csv)
+- [validated_six_site_features.csv](validated_six_site_features.csv)
+- [historical_event_label_register.csv](historical_event_label_register.csv)
 
 ---
 
@@ -93,7 +93,7 @@ Outburst Probability evaluates the **time-dependent likelihood** of a breach occ
 ### A. What is Already Available:
 * 12-day Sentinel-1 C-band SAR backscatter time-series stacks (Paths 34, 129, 136).
 * Historical event dates and multi-orbit temporal constraint windows (e.g., Kyagar August 2018 6-day window; Rumbak August 2021 18-hour window).
-* Validated event labels across the six study sites in [historical_event_label_register.csv](file:///home/aakashi/GlacialLakeDetector/historical_event_label_register.csv).
+* Validated event labels across the six study sites in [historical_event_label_register.csv](historical_event_label_register.csv).
 
 ### B. What is Scientifically Reliable:
 * Empirical cyclic recurrence pattern for Kyagar Glacier Lake (surge advance every 2–4 years damming Shaksgam, followed by hydrostatic subglacial release).
@@ -178,6 +178,6 @@ Downstream Danger quantifies the **hydrodynamic hazard and human impact** along 
 ## 6. Recommended Immediate Next Step
 
 Proceed directly to the implementation of:
-1. **Standardized MCDA GLOF Susceptibility Scoring Engine** (Objective A) using the fully validated parameters in [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv).
+1. **Standardized MCDA GLOF Susceptibility Scoring Engine** (Objective A) using the fully validated parameters in [validated_six_site_features.csv](validated_six_site_features.csv).
 2. **Empirical Peak Discharge & Downstream Travel-Time Contours** (Objective C) based on documented/modeled lake volumes.
 3. **Automated Rule-Based Trigger Monitoring Engine** (Objective B) for operational Sentinel-1 SAR change detection.

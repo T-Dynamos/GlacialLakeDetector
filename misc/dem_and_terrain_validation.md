@@ -1,9 +1,9 @@
 # GLACIAL FORENSICS — SCIENTIFIC VALIDATION REPORT: DEM & TERRAIN MEASUREMENTS
 
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Target Scope:** Copernicus GLO-30 Digital Surface Model (DSM), Topographic Derivatives, and Channel Gradient Audit across Six Study Sites  
-**Reference Document:** [GLACIAL_FORENSICS_SIX_SITES_REPORT](file:///home/aakashi/.gemini/antigravity-cli/brain/5dc0adcb-8b85-4274-8cbc-9c21cdbabda2/SIX_SITES_GLACIAL_FORENSICS_REPORT.md)
+**Reference Document:** [scientific_validation_audit.md](scientific_validation_audit.md)
 
 ---
 
@@ -68,7 +68,7 @@ When `np.gradient(dem_nan, 30.0, 30.0)` was evaluated across array boundaries co
 * **Corrected Formulation:** When properly masked using `(dem > 1000.0) & (slope >= 0.0)`:
   * **Rumbak Valid Catchment Slope:** Mean = **$28.46^\circ$**, Maximum = **$59.53^\circ$**.
   * **Parkachik Valid Catchment Slope:** Mean = **$25.89^\circ$**, Maximum = **$70.40^\circ$**.
-* All valid slope values have been integrated into [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv).
+* All valid slope values have been integrated into [validated_six_site_features.csv](validated_six_site_features.csv).
 
 ---
 

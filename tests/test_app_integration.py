@@ -151,10 +151,23 @@ class TestAppIntegration(unittest.TestCase):
         self.assertEqual(screen.active_view_mode, "3d")
         self.assertIn(screen.card_3d_hub, screen.view_container.children)
 
-        # Switch back to 2D View
+        # Switch back to 2D View (Matplotlib container with interactive zoom controls)
         screen.switch_view_mode("2d")
         self.assertEqual(screen.active_view_mode, "2d")
-        self.assertIn(screen.scatter_2d, screen.view_container.children)
+        self.assertTrue(
+            screen.container_2d in screen.view_container.children or
+            screen.scatter_2d in screen.view_container.children
+        )
+        self.assertIn(screen.scatter_2d, screen.container_2d.children)
+
+        # Test interactive zoom controls
+        initial_scale = screen.scatter_2d.scale
+        screen.zoom_in_2d()
+        self.assertGreater(screen.scatter_2d.scale, initial_scale)
+        screen.zoom_out_2d()
+        self.assertAlmostEqual(screen.scatter_2d.scale, initial_scale, delta=0.05)
+        screen.reset_zoom_2d()
+        self.assertEqual(screen.scatter_2d.scale, 1.0)
 
     def test_06_analysis_screen_geojson_export(self):
         """Tests GeoJSON export action from AnalysisScreen."""

@@ -2,7 +2,7 @@
 
 **Target Investigation:** Project GLACIAL FORENSICS Multi-Site Comparative Investigation  
 **Study Sites:** Rumbak, Drang-Drung, Kyagar, Gya, Parkachik, Phyang Cirque  
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Audit Purpose:** Comprehensive scientific verification, data provenance trace, code audit, and physical reconciliation prior to GLOF model implementation.
 
@@ -19,13 +19,13 @@ Before developing predictive models for **GLOF Susceptibility**, **Outburst Prob
 4. **Resolution Transparency:** Resampled $30\text{ m}$ Copernicus DEM data interpolated onto $10\text{ m}$ grids are explicitly documented as mathematical interpolations, not independent high-resolution topographic measurements.
 
 ### Master Deliverables Register
-* Master Audit Report: [scientific_validation_audit.md](file:///home/aakashi/GlacialLakeDetector/scientific_validation_audit.md)
-* Granular Claims Evidence Matrix: [claim_evidence_register.csv](file:///home/aakashi/GlacialLakeDetector/claim_evidence_register.csv)
-* Validated & Reconciled Physical Dataset: [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv)
-* Radar Technical Audit: [sar_processing_validation.md](file:///home/aakashi/GlacialLakeDetector/sar_processing_validation.md)
-* Topography Technical Audit: [dem_and_terrain_validation.md](file:///home/aakashi/GlacialLakeDetector/dem_and_terrain_validation.md)
-* Machine Learning Training Label Register: [historical_event_label_register.csv](file:///home/aakashi/GlacialLakeDetector/historical_event_label_register.csv)
-* Three-Objective Readiness Gate: [model_readiness_assessment.md](file:///home/aakashi/GlacialLakeDetector/model_readiness_assessment.md)
+* Master Audit Report: [scientific_validation_audit.md](scientific_validation_audit.md)
+* Granular Claims Evidence Matrix: [claim_evidence_register.csv](claim_evidence_register.csv)
+* Validated & Reconciled Physical Dataset: [validated_six_site_features.csv](validated_six_site_features.csv)
+* Radar Technical Audit: [sar_processing_validation.md](sar_processing_validation.md)
+* Topography Technical Audit: [dem_and_terrain_validation.md](dem_and_terrain_validation.md)
+* Machine Learning Training Label Register: [historical_event_label_register.csv](historical_event_label_register.csv)
+* Three-Objective Readiness Gate: [model_readiness_assessment.md](model_readiness_assessment.md)
 
 ---
 
@@ -102,7 +102,7 @@ Each candidate site has been audited against primary historical records, field s
 
 ## 3. Validation of SAR Processing Pipeline
 
-A comprehensive audit of the Sentinel-1 SAR pipeline (detailed in [sar_processing_validation.md](file:///home/aakashi/GlacialLakeDetector/sar_processing_validation.md)) revealed the following critical findings:
+A comprehensive audit of the Sentinel-1 SAR pipeline (detailed in [sar_processing_validation.md](sar_processing_validation.md)) revealed the following critical findings:
 
 1. **Radiometric Calibration Verification:**
    * Assets ingested from Planetary Computer's `sentinel-1-rtc` collection are processed with Gamma Software using Copernicus GLO-30 as the DEM.
@@ -126,7 +126,7 @@ A comprehensive audit of the Sentinel-1 SAR pipeline (detailed in [sar_processin
 
 ## 4. Validation of DEM and Terrain Measurements
 
-A comprehensive audit of the terrain pipeline (detailed in [dem_and_terrain_validation.md](file:///home/aakashi/GlacialLakeDetector/dem_and_terrain_validation.md)) identified several critical data-handling findings:
+A comprehensive audit of the terrain pipeline (detailed in [dem_and_terrain_validation.md](dem_and_terrain_validation.md)) identified several critical data-handling findings:
 
 ### A. Identification of the Tile Stitching & Reprojection Overwrite Bug
 * In `process_rumbak_forensics.py`, reprojecting tile `N34` after `N33` with `dst_nodata=-9999.0` resulted in `dem_n34` overwriting the southern half of the bounding box with `-9999.0` (28,240 invalid pixels).
@@ -173,7 +173,7 @@ Every major physical claim across the study sites has been reconciled and classi
 | **Parkachik** | Snout pond growth (+80.7%) & 50 ha model | **A / B / C / D** | RECONCILED | Ponds expanded from $6.15\text{ to } 11.11\text{ ha}$. The $50\text{ ha}$ is an external glaciological prospective model under complete retreat (WIHG 2023), NOT current lake area. Elevation corrected from $4,200\text{ m}$ (snout) to $3,634\text{ m}$ (water surface). |
 | **Phyang** | 2006 flood was cloudburst debris flow | **A / B / C** | DISQUALIFIED FROM GLOF | No moraine dam; ephemeral tarns only ($0.35\text{ ha}$). Disqualified from GLOF ML training. |
 
-*Full 27-claim inventory available in [claim_evidence_register.csv](file:///home/aakashi/GlacialLakeDetector/claim_evidence_register.csv).*
+*Full 27-claim inventory available in [claim_evidence_register.csv](claim_evidence_register.csv).*
 
 ---
 
@@ -194,13 +194,13 @@ We replace this with a transparent **3-Tier Qualitative Confidence Framework**:
    * *Assigned Sites:* None among the core six; reserved for regional screening candidates.
 
 ### Fully Audited Feature Dataset Summary:
-All validated physical attributes—including corrected water surface elevations, valid masked slope statistics, exact pre/post areas, calibrated backscatter values, and measurement reach lengths—are compiled in [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv).
+All validated physical attributes—including corrected water surface elevations, valid masked slope statistics, exact pre/post areas, calibrated backscatter values, and measurement reach lengths—are compiled in [validated_six_site_features.csv](validated_six_site_features.csv).
 
 ---
 
 ## 7. Model Readiness Synthesis
 
-In accordance with [model_readiness_assessment.md](file:///home/aakashi/GlacialLakeDetector/model_readiness_assessment.md), the three modeling objectives are gated as follows:
+In accordance with [model_readiness_assessment.md](model_readiness_assessment.md), the three modeling objectives are gated as follows:
 
 | Assessment Objective | Readiness Gate | Operational Scope | Prohibited Actions |
 | :--- | :--- | :--- | :--- |
@@ -215,12 +215,12 @@ In accordance with [model_readiness_assessment.md](file:///home/aakashi/GlacialL
 The existing research across the six study sites of Project GLACIAL FORENSICS is now **fully validated, scientifically reconciled, and standardized**.
 
 All seven required deliverables are generated, cross-referenced, and placed in the project repository:
-1. [scientific_validation_audit.md](file:///home/aakashi/GlacialLakeDetector/scientific_validation_audit.md)
-2. [claim_evidence_register.csv](file:///home/aakashi/GlacialLakeDetector/claim_evidence_register.csv)
-3. [validated_six_site_features.csv](file:///home/aakashi/GlacialLakeDetector/validated_six_site_features.csv)
-4. [sar_processing_validation.md](file:///home/aakashi/GlacialLakeDetector/sar_processing_validation.md)
-5. [dem_and_terrain_validation.md](file:///home/aakashi/GlacialLakeDetector/dem_and_terrain_validation.md)
-6. [historical_event_label_register.csv](file:///home/aakashi/GlacialLakeDetector/historical_event_label_register.csv)
-7. [model_readiness_assessment.md](file:///home/aakashi/GlacialLakeDetector/model_readiness_assessment.md)
+1. [scientific_validation_audit.md](scientific_validation_audit.md)
+2. [claim_evidence_register.csv](claim_evidence_register.csv)
+3. [validated_six_site_features.csv](validated_six_site_features.csv)
+4. [sar_processing_validation.md](sar_processing_validation.md)
+5. [dem_and_terrain_validation.md](dem_and_terrain_validation.md)
+6. [historical_event_label_register.csv](historical_event_label_register.csv)
+7. [model_readiness_assessment.md](model_readiness_assessment.md)
 
 We are ready to proceed to the implementation of the validated GLOF assessment models.

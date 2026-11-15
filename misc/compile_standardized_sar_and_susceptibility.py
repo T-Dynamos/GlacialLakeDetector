@@ -147,7 +147,7 @@ with open(os.path.join(out_dir, "08_missing_data_and_uncertainty_report.md"), "w
 next_stage_md = """# GLACIAL FORENSICS — Deliverable 9: Recommended Next Stage for GLOF-WATCH Application
 
 **Roadmap:** Transitioning from Static Multi-Site Forensics to Automated Operational GLOF Early-Warning  
-**Platform:** GLOF-WATCH / Antigravity Interactive Radar Intelligence Platform  
+**Platform:** GLOF-WATCH / Interactive Radar Intelligence Platform  
 
 ---
 

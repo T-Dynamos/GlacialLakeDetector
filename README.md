@@ -1,4 +1,4 @@
-# 🏔️ GLOF-Watch: Automated Glacial Lake Detection & Hazard Assessment Engine
+# GLOF-Watch: Automated Glacial Lake Detection & Hazard Assessment Engine
 
 [![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/)
 [![Challenge Track](https://img.shields.io/badge/Track-Dancing%20with%20the%20SARs-teal.svg)](https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/?tab=details)
@@ -14,7 +14,7 @@
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 1. [Executive Summary & Problem Statement](#1-executive-summary--problem-statement)
 2. [The Radar Shadow Trap & Core Innovation](#2-the-radar-shadow-trap--core-innovation)
 3. [Algorithmic & Mathematical Architecture](#3-algorithmic--mathematical-architecture)
@@ -160,18 +160,25 @@ Where $z_i$ is mean elevation in meters and $A_i$ is surface area in hectares.
 The system is decoupled into single-responsibility Python modules:
 
 ```
-glof_watch/
-├── __init__.py      # Package entry point and clean public API
-├── config.py        # Centralized physical thresholds, STAC endpoints, offline cache paths
-├── harvester.py     # Subagent 1: Hybrid offline disk cache reader & parallel STAC streaming
-├── processor.py     # Subagent 2: Slope derivation, GDAL multi-threaded warp, morphology
-├── detector.py      # Subagent 3: Dual-pol water extraction, slope shield, candidate clustering
-├── segmenter.py     # Subagent 4: Active Contour (Chan-Vese ACWE) exact shoreline delineation
-├── visualizer.py    # Subagent 5: High-resolution 4-panel diagnostic plot with adaptive basin zoom
-├── downloader.py    # Subagent 6: High-speed offline pre-cacher with rate-limit exponential backoff
-├── pipeline.py      # Orchestrator: End-to-end mission execution with step-by-step telemetry
-├── cli.py           # Production CLI with Rich tables, progress bars, and JSON outputs
-└── targets.json     # Streamlined catalog of focused benchmarks & regional corridors
+GLOF-Watch/
+├── glof_watch/             # Core algorithmic engine package
+│   ├── __init__.py         # Package entry point and clean public API
+│   ├── config.py           # Centralized physical thresholds, STAC endpoints, offline cache paths
+│   ├── harvester.py        # Subagent 1: Hybrid offline disk cache reader & parallel STAC streaming
+│   ├── processor.py        # Subagent 2: Slope derivation, GDAL multi-threaded warp, morphology
+│   ├── detector.py         # Subagent 3: Dual-pol water extraction, slope shield, candidate clustering
+│   ├── segmenter.py        # Subagent 4: Active Contour (Chan-Vese ACWE) exact shoreline delineation
+│   ├── visualizer.py       # Subagent 5: High-resolution 4-panel diagnostic plot with adaptive basin zoom
+│   ├── downloader.py       # Subagent 6: High-speed offline pre-cacher with rate-limit exponential backoff
+│   ├── pipeline.py         # Orchestrator: End-to-end mission execution with step-by-step telemetry
+│   ├── cli.py              # Production CLI with Rich tables, progress bars, and JSON outputs
+│   └── ui/                 # Production Desktop GUI (KivyMD, Kivy-Garden Matplotlib, VisPy 3D)
+├── compare_target_areas.py # Automated benchmark verification (known vs. calculated area validation)
+├── targets.json            # Streamlined catalog of focused benchmarks & regional corridors
+├── tests/                  # Pytest verification suite (accuracy, susceptibility, UI integration)
+├── outputs/                # Generated diagnostic maps, GeoJSON layers, and benchmark registers
+├── docs/                   # Space Apps challenge documentation and architecture specifications
+└── misc/                   # Supplementary forensic scripts and multi-temporal registers
 ```
 
 ---
@@ -180,7 +187,7 @@ glof_watch/
 
 GLOF-Watch includes validated bounding boxes externalized in `targets.json`:
 
-### 🎯 Focused Lake Benchmarks
+### Focused Lake Benchmarks
 | ID | Target Name | Basin | Approx Elev | Historic Significance |
 | :--- | :--- | :--- | :--- | :--- |
 | `gya` | Gya Glacial Lake | Upper Indus (Central Ladakh) | $5,411\text{ m}$ | Moraine-breach benchmark (August 2014 outburst) |
@@ -190,7 +197,7 @@ GLOF-Watch includes validated bounding boxes externalized in `targets.json`:
 | `phyang` | Phyang Glacial Lake | Phyang Valley / Leh | $5,350\text{ m}$ | Moraine outburst flood above Leh (2006) |
 | `parkachik` | Parkachik Glacial Snout | Suru Valley / Nun-Kun | $4,200\text{ m}$ | Proglacial melt pond at rapidly retreating glacial terminus |
 
-### 🗺️ Large Regional Scan Corridors (~750 to 1,100 km²)
+### Large Regional Scan Corridors (~750 to 1,100 km²)
 | ID | Corridor Name | Basin | Approx Area | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `upper_indus_regional` | Upper Indus & Gya-Taglang La | Upper Indus & Hemis | $\sim 900\text{ km}^2$ | Scans multiple glaciated valleys between Gya and Taglang La pass |
@@ -398,7 +405,7 @@ print(f"Speedup Factor: {batch_results['metrics']['speedup']}x")
 
 ---
 
-## 🏆 NASA Space Apps Challenge 2026
+## NASA Space Apps Challenge 2026
 
 * **Challenge:** *Dancing with the SARs*
 * **Team:** Prob-ution

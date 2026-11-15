@@ -19,6 +19,14 @@ from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 
+try:
+    from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+except ImportError:
+    try:
+        from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+    except ImportError:
+        FigureCanvasKivyAgg = None
+
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -235,13 +243,58 @@ class AnalysisScreen(MDScreen):
         )
         self.scatter_sat.add_widget(self.image_sat)
 
-        # 2D Diagnostic Scatter Image (with pan/zoom)
-        self.scatter_2d = ScatterLayout(do_rotation=False)
+        # 2D Diagnostic Container (Interactive Kivy Matplotlib Widget + Zoom Control Bar)
+        self.container_2d = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(6),
+            size_hint=(1, 1)
+        )
+
+        # Matplotlib Interactive Zoom Control Bar
+        zoom_bar_2d = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=dp(34),
+            spacing=dp(6)
+        )
+        self.btn_zoom_in_2d = MDButton(
+            MDButtonIcon(icon="magnify-plus-outline"),
+            MDButtonText(text="Zoom In"),
+            on_release=lambda *args: self.zoom_in_2d()
+        )
+        self.btn_zoom_out_2d = MDButton(
+            MDButtonIcon(icon="magnify-minus-outline"),
+            MDButtonText(text="Zoom Out"),
+            on_release=lambda *args: self.zoom_out_2d()
+        )
+        self.btn_zoom_reset_2d = MDButton(
+            MDButtonIcon(icon="restore"),
+            MDButtonText(text="Reset View"),
+            on_release=lambda *args: self.reset_zoom_2d()
+        )
+        self.btn_zoom_fit_2d = MDButton(
+            MDButtonIcon(icon="fit-to-screen-outline"),
+            MDButtonText(text="Fit Screen"),
+            on_release=lambda *args: self.fit_view_2d()
+        )
+        apply_button_style(self.btn_zoom_in_2d, "secondary")
+        apply_button_style(self.btn_zoom_out_2d, "secondary")
+        apply_button_style(self.btn_zoom_reset_2d, "secondary")
+        apply_button_style(self.btn_zoom_fit_2d, "secondary")
+        zoom_bar_2d.add_widget(self.btn_zoom_in_2d)
+        zoom_bar_2d.add_widget(self.btn_zoom_out_2d)
+        zoom_bar_2d.add_widget(self.btn_zoom_reset_2d)
+        zoom_bar_2d.add_widget(self.btn_zoom_fit_2d)
+        self.container_2d.add_widget(zoom_bar_2d)
+
+        self.scatter_2d = ScatterLayout(do_rotation=False, size_hint=(1, 1))
+        self.canvas_matplotlib_widget = None
         self.image_2d = Image(
             fit_mode="contain",
             size_hint=(1, 1)
         )
         self.scatter_2d.add_widget(self.image_2d)
+        self.container_2d.add_widget(self.scatter_2d)
 
         # ---------------------------------------------------------
         # 3D Dedicated Control Hub Box (Standalone VisPy Window Mode)
@@ -623,8 +676,7 @@ class AnalysisScreen(MDScreen):
         """Pre-loads existing diagnostic plot and geojson if found on disk."""
         diag_path = os.path.abspath("detected_lakes_diagnostic.png")
         if os.path.exists(diag_path):
-            self.image_2d.source = diag_path
-            self.image_2d.reload()
+            self.update_2d_diagnostic_matplotlib(diag_path)
 
         geo_path = os.path.abspath("detected_lakes.geojson")
         if os.path.exists(geo_path):
@@ -709,6 +761,11 @@ class AnalysisScreen(MDScreen):
         # Clear visual containers
         self.image_sat.source = ""
         self.image_2d.source = ""
+        if hasattr(self, "canvas_matplotlib_widget") and self.canvas_matplotlib_widget and self.canvas_matplotlib_widget in self.scatter_2d.children:
+            self.scatter_2d.remove_widget(self.canvas_matplotlib_widget)
+            self.canvas_matplotlib_widget = None
+        self.image_2d.opacity = 1.0
+        self.reset_zoom_2d()
         self.image_3d.texture = None
 
         # Reset internal data caches
@@ -845,11 +902,10 @@ class AnalysisScreen(MDScreen):
             self.image_sat.source = result["plot_path"]
             self.image_sat.reload()
 
-        # Reload 2D Diagnostic image
+        # Reload 2D Diagnostic image via interactive Kivy Matplotlib widget
         plot_path = result.get("plot_path")
         if plot_path and os.path.exists(plot_path):
-            self.image_2d.source = plot_path
-            self.image_2d.reload()
+            self.update_2d_diagnostic_matplotlib(plot_path)
 
         # Update 3D telemetry display values
         self._update_3d_telemetry_card()
@@ -869,6 +925,74 @@ class AnalysisScreen(MDScreen):
         self.kpi_elevation.text = "-- m"
         self.append_log(f"[ERROR] Pipeline execution failed: {error_message}")
 
+    def zoom_in_2d(self):
+        """Zooms into the 2D diagnostic plot."""
+        if hasattr(self, "scatter_2d"):
+            self.scatter_2d.scale = min(6.0, self.scatter_2d.scale * 1.25)
+
+    def zoom_out_2d(self):
+        """Zooms out of the 2D diagnostic plot."""
+        if hasattr(self, "scatter_2d"):
+            self.scatter_2d.scale = max(0.3, self.scatter_2d.scale / 1.25)
+
+    def reset_zoom_2d(self):
+        """Resets the 2D diagnostic zoom scale and viewport position."""
+        if hasattr(self, "scatter_2d"):
+            self.scatter_2d.scale = 1.0
+            self.scatter_2d.pos = (0, 0)
+
+    def fit_view_2d(self):
+        """Fits the 2D diagnostic plot cleanly into the workspace viewport."""
+        self.reset_zoom_2d()
+
+    def update_2d_diagnostic_matplotlib(self, plot_path: str):
+        """
+        Embeds an interactive Matplotlib widget (FigureCanvasKivyAgg) directly into the 2D scatter view.
+        Falls back to Image if FigureCanvasKivyAgg is unavailable.
+        """
+        if not plot_path or not os.path.exists(plot_path):
+            return
+
+        # Attempt to load and embed via Kivy Matplotlib widget
+        if FigureCanvasKivyAgg is not None:
+            try:
+                import matplotlib
+                matplotlib.use('Agg')
+                import matplotlib.pyplot as plt
+                import matplotlib.image as mpimg
+
+                # Read rendered diagnostic image and build high-resolution Matplotlib Figure
+                img_arr = mpimg.imread(plot_path)
+                h, w = img_arr.shape[:2]
+                aspect = w / h if h > 0 else 1.0
+                fig, ax = plt.subplots(figsize=(8.0 * aspect, 8.0), facecolor="#0a0f14")
+                ax.imshow(img_arr)
+                ax.axis("off")
+                fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
+                # Instantiate Kivy Matplotlib FigureCanvas widget
+                mb_widget = FigureCanvasKivyAgg(fig)
+                mb_widget.size_hint = (1, 1)
+
+                # Clean up previous matplotlib widget if present
+                if hasattr(self, "canvas_matplotlib_widget") and self.canvas_matplotlib_widget and self.canvas_matplotlib_widget in self.scatter_2d.children:
+                    self.scatter_2d.remove_widget(self.canvas_matplotlib_widget)
+
+                # Hide fallback image and add interactive Matplotlib canvas widget
+                self.image_2d.opacity = 0
+                self.scatter_2d.add_widget(mb_widget)
+                self.canvas_matplotlib_widget = mb_widget
+                self.reset_zoom_2d()
+                return
+            except Exception:
+                pass
+
+        # Fallback to standard Image
+        self.image_2d.opacity = 1.0
+        self.image_2d.source = plot_path
+        self.image_2d.reload()
+        self.reset_zoom_2d()
+
     def switch_view_mode(self, mode: str):
         """Toggles between Satellite Shoreline, 2D Diagnostic figure, 3D terrain relief hub, and AHP Susceptibility."""
         self.active_view_mode = mode
@@ -883,7 +1007,7 @@ class AnalysisScreen(MDScreen):
         if mode == "sat":
             self.view_container.add_widget(self.scatter_sat)
         elif mode == "2d":
-            self.view_container.add_widget(self.scatter_2d)
+            self.view_container.add_widget(self.container_2d)
         elif mode == "3d":
             self._update_3d_telemetry_card()
             self.view_container.add_widget(self.card_3d_hub)

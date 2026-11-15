@@ -2,7 +2,7 @@
 
 **Document ID:** `GLOF-WATCH-METH-AHP-01`  
 **Stage:** Stage 2A: Physics-Informed GLOF Susceptibility Engine  
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Target Scope:** Multi-Criteria Susceptibility Modeling across Five Qualifying Himalayan Glacial Lake Sites (Rumbak, Drang-Drung, Kyagar, Gya, Parkachik)  
 **Exclusion Note:** Phyang Cirque is disqualified and excluded from glacial-lake calculations as an unconfined debris-flow catchment.
@@ -79,7 +79,7 @@ $$\mathbf{A} = \begin{bmatrix}
 1/5 & 1/5 & 1/4 & 1/4 & 1/3 & 1/3 & 1/2 & 1
 \end{bmatrix}$$
 
-*The complete CSV matrix is archived in [ahp_pairwise_matrix.csv](file:///home/aakashi/GlacialLakeDetector/ahp_pairwise_matrix.csv).*
+*The complete CSV matrix is archived in [ahp_pairwise_matrix.csv](ahp_pairwise_matrix.csv).*
 
 ### B. Scientific Justification for Pairwise Comparisons
 1. **$a_{1,5} = 4$ (Dam Type vs. Lake Area):** Dam geotechnical integrity is far more critical than lake size. An unbreachable bedrock basin containing $25\text{ ha}$ cannot fail by piping, whereas a small $2\text{ ha}$ ice-cored moraine can empty completely.
@@ -158,7 +158,7 @@ Scores are mapped into five transparent, ordinal susceptibility categories:
 
 ## 6. Disqualification Protocol for Phyang Cirque
 
-In strict accordance with the Stage 1 Validation Gate ([scientific_validation_audit.md](file:///home/aakashi/GlacialLakeDetector/scientific_validation_audit.md)):
+In strict accordance with the Stage 1 Validation Gate ([scientific_validation_audit.md](scientific_validation_audit.md)):
 * Phyang Cirque is **NOT** a moraine-dammed or ice-dammed lake.
 * It is an unconfined periglacial headwall amphitheater with shallow bedrock tarns ($<0.5\text{ ha}$).
 * Its July 2006 flood was a **monsoon convective cloudburst debris flow**.
@@ -168,7 +168,7 @@ In strict accordance with the Stage 1 Validation Gate ([scientific_validation_au
 
 ## 7. Results Summary Across the Five Qualifying Lakes
 
-The engine was evaluated across the validated five-lake dataset, producing the following results (detailed in [glof_susceptibility_results.csv](file:///home/aakashi/GlacialLakeDetector/glof_susceptibility_results.csv)):
+The engine was evaluated across the validated five-lake dataset, producing the following results (detailed in [glof_susceptibility_results.csv](glof_susceptibility_results.csv)):
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐

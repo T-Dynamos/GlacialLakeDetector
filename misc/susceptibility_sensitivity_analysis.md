@@ -2,10 +2,10 @@
 
 **Document ID:** `GLOF-WATCH-VAL-SENS-01`  
 **Stage:** Stage 2A: Physics-Informed GLOF Susceptibility Engine  
-**Author:** Antigravity Scientific Forensics Team  
+**Author:** GLOF-Watch Scientific Forensics Team  
 **Date:** 15 November 2026  
 **Target Scope:** Quantitative Sensitivity Analysis, Weight Perturbation Dynamics, and Small-Sample Validation across Five Qualifying Himalayan Glacial Lakes  
-**Reference Document:** [ahp_methodology.md](file:///home/aakashi/GlacialLakeDetector/ahp_methodology.md)
+**Reference Document:** [ahp_methodology.md](ahp_methodology.md)
 
 ---
 

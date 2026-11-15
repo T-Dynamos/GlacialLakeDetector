@@ -19,7 +19,6 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
-from kivymd.uix.card import MDCard
 from kivymd.uix.divider import MDDivider
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.slider import MDSlider
@@ -223,14 +222,15 @@ class SearchScreen(MDScreen):
             size_hint_y=1.0
         )
 
-        # Search Controls Card
-        search_card = MDCard(
+        # Search Controls Box
+        search_card = MDBoxLayout(
             orientation="vertical",
             pos_hint={"top": 1.0},
             padding=[dp(14), dp(10), dp(14), dp(10)],
             spacing=dp(8),
             size_hint_y=None,
-            height=dp(156)
+            height=dp(156),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(search_card)
 
@@ -364,12 +364,13 @@ class SearchScreen(MDScreen):
         )
 
         # Source Detection Bar
-        det_bar = MDCard(
+        det_bar = MDBoxLayout(
             orientation="horizontal",
             padding=[dp(16), dp(8), dp(16), dp(8)],
             spacing=dp(10),
             size_hint_y=None,
-            height=dp(54)
+            height=dp(54),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(det_bar)
 
@@ -485,10 +486,12 @@ class SearchScreen(MDScreen):
         self.results_list.clear_widgets()
 
         if not lakes:
-            empty_card = MDCard(
+            empty_card = MDBoxLayout(
+                orientation="vertical",
                 padding=dp(16),
                 size_hint_y=None,
-                height=dp(80)
+                height=dp(80),
+                radius=[dp(10), dp(10), dp(10), dp(10)]
             )
             apply_card_style(empty_card)
             empty_card.add_widget(
@@ -506,7 +509,7 @@ class SearchScreen(MDScreen):
             card = self._create_lake_card(lake)
             self.results_list.add_widget(card)
 
-    def _create_lake_card(self, lake: Dict[str, Any]) -> MDCard:
+    def _create_lake_card(self, lake: Dict[str, Any]) -> MDBoxLayout:
         """Constructs an interactive card widget for an individual glacial lake."""
         hazard = lake.get("hazard_level", "LOW")
         if hazard == "CRITICAL":
@@ -518,12 +521,13 @@ class SearchScreen(MDScreen):
         else:
             hazard_color = COLOR_HAZARD_LOW
 
-        card = MDCard(
+        card = MDBoxLayout(
             orientation="vertical",
             padding=[dp(14), dp(10), dp(14), dp(10)],
             spacing=dp(5),
             size_hint_y=None,
-            height=dp(174)
+            height=dp(174),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(card)
 
@@ -729,13 +733,14 @@ class SearchScreen(MDScreen):
         else:
             badge_bg = COLOR_HAZARD_LOW
 
-        # 1. Primary Verification Result Card
-        result_card = MDCard(
+        # 1. Primary Verification Result Box
+        result_card = MDBoxLayout(
             orientation="vertical",
             padding=[dp(16), dp(12), dp(16), dp(12)],
             spacing=dp(6),
             size_hint_y=None,
-            height=dp(130)
+            height=dp(130),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(result_card)
 
@@ -771,13 +776,14 @@ class SearchScreen(MDScreen):
         result_card.add_widget(confidence_lbl)
         self.telemetry_container.add_widget(result_card)
 
-        # 2. Detailed Metric Comparison Grid Card
-        metric_card = MDCard(
+        # 2. Detailed Metric Comparison Grid Box
+        metric_card = MDBoxLayout(
             orientation="vertical",
             padding=[dp(16), dp(12), dp(16), dp(12)],
             spacing=dp(6),
             size_hint_y=None,
-            height=dp(160)
+            height=dp(160),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(metric_card)
 
@@ -830,12 +836,13 @@ class SearchScreen(MDScreen):
         self.telemetry_container.add_widget(metric_card)
 
         # 3. Historical Glaciological Notes & Outburst Context
-        notes_card = MDCard(
+        notes_card = MDBoxLayout(
             orientation="vertical",
             padding=[dp(16), dp(12), dp(16), dp(12)],
             spacing=dp(6),
             size_hint_y=None,
-            height=dp(180)
+            height=dp(180),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(notes_card)
 
@@ -882,11 +889,13 @@ class SearchScreen(MDScreen):
         notes_card.add_widget(rec_body)
         self.telemetry_container.add_widget(notes_card)
 
-        # 4. Action Button Card
-        action_card = MDCard(
+        # 4. Action Button Box
+        action_card = MDBoxLayout(
+            orientation="vertical",
             padding=dp(8),
             size_hint_y=None,
-            height=dp(52)
+            height=dp(52),
+            radius=[dp(10), dp(10), dp(10), dp(10)]
         )
         apply_card_style(action_card)
 

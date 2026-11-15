@@ -17,18 +17,18 @@ from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.metrics import dp
 
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.progressindicator import MDLinearProgressIndicator
 
 from glof_watch.pipeline import run_detection_for_bbox
 from glof_watch.ui.vispy_3d import render_3d_terrain_rgba, launch_interactive_vispy_window
-from glof_watch.ui.theme import apply_button_style
+from glof_watch.ui.theme import apply_button_style, apply_card_style
 
 
 class AnalysisScreen(MDScreen):
@@ -112,7 +112,8 @@ class AnalysisScreen(MDScreen):
         )
 
         # Card 1: Lake Count
-        self.card_lakes = MDCard(orientation="vertical", padding=8, spacing=2, style="elevated")
+        self.card_lakes = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        apply_card_style(self.card_lakes)
         self.card_lakes.add_widget(MDLabel(text="LAKES DETECTED", font_style="Label", role="small", halign="center"))
         self.kpi_lake_count = MDLabel(text="--", font_style="Headline", role="small", halign="center", bold=True)
         self.card_lakes.add_widget(self.kpi_lake_count)
@@ -120,7 +121,8 @@ class AnalysisScreen(MDScreen):
         kpi_row.add_widget(self.card_lakes)
 
         # Card 2: Clean Surface Area
-        self.card_area = MDCard(orientation="vertical", padding=8, spacing=2, style="elevated")
+        self.card_area = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        apply_card_style(self.card_area)
         self.card_area.add_widget(MDLabel(text="CLEAN AREA (HA)", font_style="Label", role="small", halign="center"))
         self.kpi_clean_area = MDLabel(text="-- ha", font_style="Headline", role="small", halign="center", bold=True)
         self.card_area.add_widget(self.kpi_clean_area)
@@ -128,7 +130,8 @@ class AnalysisScreen(MDScreen):
         kpi_row.add_widget(self.card_area)
 
         # Card 3: Cliff Shadows Cut %
-        self.card_shadow = MDCard(orientation="vertical", padding=8, spacing=2, style="elevated")
+        self.card_shadow = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        apply_card_style(self.card_shadow)
         self.card_shadow.add_widget(MDLabel(text="SHADOWS ELIMINATED", font_style="Label", role="small", halign="center"))
         self.kpi_shadow_cut = MDLabel(text="-- %", font_style="Headline", role="small", halign="center", bold=True)
         self.card_shadow.add_widget(self.kpi_shadow_cut)
@@ -136,7 +139,8 @@ class AnalysisScreen(MDScreen):
         kpi_row.add_widget(self.card_shadow)
 
         # Card 4: Hazard Risk Level
-        self.card_risk = MDCard(orientation="vertical", padding=8, spacing=2, style="elevated")
+        self.card_risk = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        apply_card_style(self.card_risk)
         self.card_risk.add_widget(MDLabel(text="HAZARD RISK LEVEL", font_style="Label", role="small", halign="center"))
         self.kpi_risk_level = MDLabel(text="STANDBY", font_style="Headline", role="small", halign="center", bold=True)
         self.card_risk.add_widget(self.kpi_risk_level)
@@ -144,7 +148,8 @@ class AnalysisScreen(MDScreen):
         kpi_row.add_widget(self.card_risk)
 
         # Card 5: Elevation
-        self.card_elevation = MDCard(orientation="vertical", padding=8, spacing=2, style="elevated")
+        self.card_elevation = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
+        apply_card_style(self.card_elevation)
         self.card_elevation.add_widget(MDLabel(text="MEAN ELEVATION", font_style="Label", role="small", halign="center"))
         self.kpi_elevation = MDLabel(text="-- m", font_style="Headline", role="small", halign="center", bold=True)
         self.card_elevation.add_widget(self.kpi_elevation)
@@ -226,15 +231,16 @@ class AnalysisScreen(MDScreen):
         self.scatter_2d.add_widget(self.image_2d)
 
         # ---------------------------------------------------------
-        # 3D Dedicated Control Hub Card (Standalone VisPy Window Mode)
+        # 3D Dedicated Control Hub Box (Standalone VisPy Window Mode)
         # ---------------------------------------------------------
-        self.card_3d_hub = MDCard(
+        self.card_3d_hub = MDBoxLayout(
             orientation="vertical",
-            padding=[20, 16, 20, 16],
-            spacing=10,
-            style="elevated",
+            padding=[dp(20), dp(16), dp(20), dp(16)],
+            spacing=dp(10),
+            radius=[dp(10), dp(10), dp(10), dp(10)],
             size_hint=(1, 1)
         )
+        apply_card_style(self.card_3d_hub)
 
         hub_header = MDBoxLayout(
             orientation="horizontal",
@@ -281,7 +287,8 @@ class AnalysisScreen(MDScreen):
         )
 
         # Card A: Elevation Span
-        card_elev_span = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_elev_span = MDBoxLayout(orientation="vertical", padding=dp(6), spacing=dp(2), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_elev_span)
         card_elev_span.add_widget(MDLabel(text="ELEVATION RANGE", font_style="Label", role="small", halign="center"))
         self.lbl_3d_elev_range = MDLabel(text="-- m", font_style="Headline", role="small", halign="center", bold=True)
         card_elev_span.add_widget(self.lbl_3d_elev_range)
@@ -290,7 +297,8 @@ class AnalysisScreen(MDScreen):
         telemetry_row.add_widget(card_elev_span)
 
         # Card B: DEM Grid & Resolution
-        card_grid = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_grid = MDBoxLayout(orientation="vertical", padding=dp(6), spacing=dp(2), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_grid)
         card_grid.add_widget(MDLabel(text="DEM GRID CELLS", font_style="Label", role="small", halign="center"))
         self.lbl_3d_grid_res = MDLabel(text="144 x 108", font_style="Headline", role="small", halign="center", bold=True)
         card_grid.add_widget(self.lbl_3d_grid_res)
@@ -298,7 +306,8 @@ class AnalysisScreen(MDScreen):
         telemetry_row.add_widget(card_grid)
 
         # Card C: Draping & Water Plane
-        card_drape = MDCard(orientation="vertical", padding=6, spacing=2, style="outlined")
+        card_drape = MDBoxLayout(orientation="vertical", padding=dp(6), spacing=dp(2), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_drape)
         card_drape.add_widget(MDLabel(text="GLACIAL DRAPING", font_style="Label", role="small", halign="center"))
         self.lbl_3d_drape = MDLabel(text="ACTIVE CONTOUR", font_style="Headline", role="small", halign="center", bold=True)
         card_drape.add_widget(self.lbl_3d_drape)
@@ -308,13 +317,14 @@ class AnalysisScreen(MDScreen):
         self.card_3d_hub.add_widget(telemetry_row)
 
         # Navigation & Controls Guide Card
-        controls_card = MDCard(
+        controls_card = MDBoxLayout(
             orientation="vertical",
-            padding=[12, 8, 12, 8],
-            spacing=4,
-            style="outlined",
+            padding=[dp(12), dp(8), dp(12), dp(8)],
+            spacing=dp(4),
+            radius=[dp(10), dp(10), dp(10), dp(10)],
             size_hint=(1, 1)
         )
+        apply_card_style(controls_card)
         controls_card.add_widget(
             MDLabel(
                 text="STANDALONE VISPY 3D INTERACTION CONTROLS",
@@ -403,14 +413,15 @@ class AnalysisScreen(MDScreen):
         prog_header.add_widget(self.progress_bar)
         right_col.add_widget(prog_header)
 
-        # Terminal Log View Card
-        terminal_card = MDCard(
+        # Terminal Log View Box
+        terminal_card = MDBoxLayout(
             orientation="vertical",
-            padding=[8, 6, 8, 6],
-            spacing=4,
-            style="elevated",
+            padding=[dp(8), dp(6), dp(8), dp(6)],
+            spacing=dp(4),
+            radius=[dp(10), dp(10), dp(10), dp(10)],
             size_hint=(1, 1)
         )
+        apply_card_style(terminal_card)
         terminal_card.add_widget(
             MDLabel(
                 text="MISSION LOG TERMINAL",

@@ -25,7 +25,6 @@ from kivy.animation import Animation
 
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
-from kivymd.uix.card import MDCard
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon, MDIconButton
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.label import MDLabel
@@ -285,23 +284,18 @@ class MapScreen(MDScreen):
         # Initial HUD sync
         self.update_hud()
 
-    def _create_hud_card(self) -> MDCard:
-        """Creates the floating telemetry and scale HUD card at the top with Target Dropdown."""
-        card = MDCard(
-            style="outlined",
+    def _create_hud_card(self) -> MDBoxLayout:
+        """Creates the floating telemetry and scale HUD container at the top with Target Dropdown."""
+        hud_box = MDBoxLayout(
+            orientation="horizontal",
             pos_hint={"top": 0.98, "center_x": 0.5},
             size_hint=(0.96, None),
             height=dp(52),
-            padding=[dp(14), dp(4), dp(14), dp(4)],
-        )
-        apply_card_style(card)
-
-        hud_box = MDBoxLayout(
-            orientation="horizontal",
+            padding=[dp(14), dp(6), dp(14), dp(6)],
             spacing=dp(12),
-            adaptive_height=True,
-            pos_hint={"center_y": 0.5},
+            radius=[dp(10), dp(10), dp(10), dp(10)],
         )
+        apply_card_style(hud_box)
 
         self.hud_title_label = None
 
@@ -352,8 +346,7 @@ class MapScreen(MDScreen):
         hud_box.add_widget(self.hud_coords_label)
         hud_box.add_widget(self.hud_scale_label)
 
-        card.add_widget(hud_box)
-        return card
+        return hud_box
 
     def toggle_map_layer(self, *args):
         """Toggles between High-Resolution Satellite imagery and Street/Topo map."""
@@ -447,23 +440,19 @@ class MapScreen(MDScreen):
             self.target_menu.dismiss()
         self.select_preset(key)
 
-    def _create_bbox_control_card(self) -> MDCard:
-        """Creates the bottom-left telemetry and interactive nudge control card with grid layout and icon font."""
-        card = MDCard(
-            style="outlined",
+    def _create_bbox_control_card(self) -> MDBoxLayout:
+        """Creates the bottom-left telemetry and interactive nudge control box with grid layout and icon font."""
+        card = MDBoxLayout(
+            orientation="vertical",
             pos_hint={"x": 0.02, "y": 0.03},
             size_hint=(None, None),
             width=dp(470),
-            height=dp(152),
-            padding=[dp(16), dp(10), dp(16), dp(10)],
+            adaptive_height=True,
+            padding=[dp(16), dp(12), dp(16), dp(14)],
+            spacing=dp(8),
+            radius=[dp(10), dp(10), dp(10), dp(10)],
         )
         apply_card_style(card)
-
-        container = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(5),
-            size_hint=(1, 1),
-        )
 
         title = MDLabel(
             text="[b]ACTIVE AOI BOUNDING BOX[/b]  [color=#00e5ff][WGS84][/color]",
@@ -472,7 +461,7 @@ class MapScreen(MDScreen):
             role="large",
             adaptive_height=True,
         )
-        container.add_widget(title)
+        card.add_widget(title)
 
         # Live BBox readout with Markdown markup support
         self.bbox_coords_label = MDLabel(
@@ -482,7 +471,7 @@ class MapScreen(MDScreen):
             role="medium",
             adaptive_height=True,
         )
-        container.add_widget(self.bbox_coords_label)
+        card.add_widget(self.bbox_coords_label)
 
         # Dimension readout with Markdown markup support
         self.bbox_extent_label = MDLabel(
@@ -492,10 +481,10 @@ class MapScreen(MDScreen):
             role="medium",
             adaptive_height=True,
         )
-        container.add_widget(self.bbox_extent_label)
+        card.add_widget(self.bbox_extent_label)
 
         # -------------------------------------------------------------
-        # Interactive Nudge Controls: Clean horizontal bar fitting 100% inside card
+        # Interactive Nudge Controls: Clean horizontal bar fitting 100% inside container
         # -------------------------------------------------------------
         nudge_row = MDBoxLayout(
             orientation="horizontal",
@@ -524,14 +513,14 @@ class MapScreen(MDScreen):
                 ),
                 theme_width="Custom",
                 size_hint_x=1.0 / len(nudge_actions),
+                size_hint_y=None,
                 height=dp(34)
             )
             apply_button_style(btn, "secondary")
             btn.bind(on_release=lambda *a, f=func: f())
             nudge_row.add_widget(btn)
 
-        container.add_widget(nudge_row)
-        card.add_widget(container)
+        card.add_widget(nudge_row)
         return card
 
     def select_preset(self, preset_key: str, animate: bool = True):

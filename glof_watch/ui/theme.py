@@ -5,9 +5,10 @@ Provides high-contrast, professional radar-cockpit styling with guaranteed
 legibility across active, inactive, and action button states.
 """
 
-from typing import Optional
+from typing import Optional, Union
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon, MDIconButton
 from kivymd.uix.card import MDCard
+from kivymd.uix.boxlayout import MDBoxLayout
 
 # ==============================================================================
 # Palette Constants (W3C AAA / WCAG High Contrast Dark Theme)
@@ -74,6 +75,8 @@ def apply_button_style(
     btn.theme_line_color = "Custom"
     btn.theme_elevation_level = "Custom"
     btn.elevation_level = 0
+    if hasattr(btn, "focus_behavior"):
+        btn.focus_behavior = False
 
     if btn.size_hint_x is not None:
         btn.theme_width = "Custom"
@@ -109,22 +112,28 @@ def apply_button_style(
         fg = custom_fg or COLOR_INACTIVE_FG
         icon_fg = COLOR_INACTIVE_ICON
 
-    def _sync_children():
+    btn._glof_style_fg = fg
+    btn._glof_style_icon_fg = icon_fg
+
+    def _sync_children(*_):
+        curr_fg = getattr(btn, "_glof_style_fg", fg)
+        curr_icon_fg = getattr(btn, "_glof_style_icon_fg", icon_fg)
         for child in btn.children:
             if isinstance(child, MDButtonText):
                 child.theme_text_color = "Custom"
-                child.text_color = fg
+                child.text_color = curr_fg
+                child.color = curr_fg
             elif isinstance(child, MDButtonIcon):
                 child.theme_icon_color = "Custom"
-                child.icon_color = icon_fg
-                child.color = icon_fg
+                child.icon_color = curr_icon_fg
+                child.color = curr_icon_fg
 
     _sync_children()
 
     # Re-apply styling if children are added or replaced later
     if not hasattr(btn, "_glof_bound_children"):
         btn._glof_bound_children = True
-        btn.bind(children=lambda *_: _sync_children())
+        btn.bind(children=_sync_children)
 
 
 def apply_icon_button_style(
@@ -168,19 +177,39 @@ def apply_icon_button_style(
 
 
 def apply_card_style(
-    card: MDCard,
+    container: Union[MDCard, MDBoxLayout],
     custom_bg: Optional[list] = None,
-    custom_border: Optional[list] = None
+    custom_border: Optional[list] = None,
+    radius: Optional[list] = None,
 ) -> None:
     """
-    Applies high-contrast dark telemetry container styling to an MDCard.
+    Applies high-contrast dark telemetry container styling to an MDBoxLayout or MDCard.
+    Eliminates elevation shadow FBO overhead while ensuring crisp borders and background fill.
     """
-    if not isinstance(card, MDCard):
+    if not isinstance(container, (MDCard, MDBoxLayout)):
         return
-    card.style = "outlined"
-    card.theme_bg_color = "Custom"
-    card.theme_line_color = "Custom"
+
+    if hasattr(container, "style"):
+        container.style = "outlined"
+    if hasattr(container, "theme_bg_color"):
+        container.theme_bg_color = "Custom"
+    if hasattr(container, "theme_line_color"):
+        container.theme_line_color = "Custom"
+    if hasattr(container, "elevation_level"):
+        container.elevation_level = 0
+    if hasattr(container, "focus_behavior"):
+        container.focus_behavior = False
+
     bg = custom_bg or COLOR_CARD_BG
-    card.md_bg_color = bg
-    card._md_bg_color = bg
-    card.line_color = custom_border or COLOR_CARD_BORDER
+    container.md_bg_color = bg
+    container._md_bg_color = bg
+
+    border = custom_border or COLOR_CARD_BORDER
+    container.line_color = border
+    if hasattr(container, "_line_color"):
+        container._line_color = border
+
+    r = radius or [10, 10, 10, 10]
+    container.radius = r
+    if hasattr(container, "_radius"):
+        container._radius = r

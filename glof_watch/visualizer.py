@@ -7,10 +7,14 @@ redrawn directly on genuine high-resolution satellite imagery (Sentinel-2 10m Tr
 Includes adaptive basin zooming and vector styling for particular / focused glacial lakes.
 """
 
+import logging
 from typing import List, Dict, Any, Optional
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("matplotlib.font_manager").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Polygon as MplPolygon
 from matplotlib.colors import LinearSegmentedColormap, LightSource

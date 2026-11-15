@@ -82,6 +82,23 @@ def test_inventory_contains_high_altitude_tarns():
         assert t_id in catalog_ids, f"Required tarn '{t_id}' missing from catalog"
 
 
+def test_inventory_unburst_high_mountain_himalayan_targets():
+    """Validates that newly added unburst high-mountain Himalayan targets exist and have unburst status."""
+    catalog = {lake["id"]: lake for lake in HIMALAYAN_GLACIAL_LAKE_INVENTORY}
+    unburst_targets = [
+        "ghepan_gath", "samudra_tapu", "chorabari_companion",
+        "lower_barun", "thorthormi", "chong_kumdan", "tsho_rolpa", "imja_tsho"
+    ]
+    for tid in unburst_targets:
+        assert tid in catalog, f"Unburst target '{tid}' missing from inventory"
+        lake = catalog[tid]
+        assert lake["historical_glof"] is False, f"Target {tid} marked as historical_glof but should be unburst"
+        assert lake["is_breach_site"] is False, f"Target {tid} marked as is_breach_site but should be unburst"
+        assert lake["elevation_m"] >= 3900, f"Target {tid} elevation too low for high mountain Himalaya"
+        assert lake["area_ha"] > 0
+        assert "UNBURST" in lake["status"] or lake["status"] in ("MONITORED_CONTROLLED", "EXPANDING_PROGLACIAL")
+
+
 def test_inventory_lake_attributes_validity():
     """Validates schema integrity for every catalogued lake."""
     seen_ids = set()

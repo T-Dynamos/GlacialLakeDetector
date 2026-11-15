@@ -54,6 +54,78 @@
       "elevation_approx_m": 4200,
       "description": "Proglacial melt pond at rapidly retreating Parkachik snout",
       "bbox": [75.925, 34.105, 75.975, 34.145]
+    },
+    "ghepan_gath": {
+      "id": "ghepan_gath",
+      "name": "Ghepan Gath Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Chandra Basin / Lahaul (Himachal Pradesh)",
+      "elevation_approx_m": 4050,
+      "description": "Unburst critical hazard: Rapidly expanding moraine-dammed lake under active NDMA & CWC surveillance",
+      "bbox": [77.240, 32.360, 77.290, 32.400]
+    },
+    "samudra_tapu": {
+      "id": "samudra_tapu",
+      "name": "Samudra Tapu Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Upper Chandra Basin / Lahaul (Himachal Pradesh)",
+      "elevation_approx_m": 4200,
+      "description": "Unburst high-altitude lake impounding >35 million m³ behind composite terminal moraine ramparts",
+      "bbox": [77.460, 32.475, 77.510, 32.515]
+    },
+    "chorabari_companion": {
+      "id": "chorabari_companion",
+      "name": "Chorabari Snout Companion Tarn",
+      "type": "focused_lake",
+      "basin": "Mandakini Basin / Kedarnath Massif (Uttarakhand)",
+      "elevation_approx_m": 3960,
+      "description": "Unburst proglacial snout tarn directly above Kedarnath, continuously monitored by WIHG radar",
+      "bbox": [79.040, 30.740, 79.085, 30.780]
+    },
+    "lower_barun": {
+      "id": "lower_barun",
+      "name": "Lower Barun Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Makalu-Barun / Arun Basin (Eastern Nepal)",
+      "elevation_approx_m": 4550,
+      "description": "Unburst Tier-1 GLOF hazard: Massive 2.1 km² lake impounding >110 million m³ beneath Mt. Makalu",
+      "bbox": [87.065, 27.775, 87.120, 27.815]
+    },
+    "thorthormi": {
+      "id": "thorthormi",
+      "name": "Thorthormi Lake Complex",
+      "type": "focused_lake",
+      "basin": "Lunana Region / Pho Chhu (Bhutan Himalaya)",
+      "elevation_approx_m": 4420,
+      "description": "Unburst super-hazard: 3.4 km² lake separated from Lugge Tsho by a degrading ice-cored pressure ridge",
+      "bbox": [90.205, 28.130, 90.260, 28.170]
+    },
+    "tsho_rolpa": {
+      "id": "tsho_rolpa",
+      "name": "Tsho Rolpa Moraine Lake",
+      "type": "focused_lake",
+      "basin": "Rolwaling Valley / Dolakha (Nepal Himalaya)",
+      "elevation_approx_m": 4580,
+      "description": "Unburst engineered hazard: 130m-deep lake impounding >80 million m³ under continuous radar surveillance",
+      "bbox": [86.440, 27.840, 86.510, 27.890]
+    },
+    "imja_tsho": {
+      "id": "imja_tsho",
+      "name": "Imja Tsho Glacial Lake",
+      "type": "focused_lake",
+      "basin": "Everest Region / Khumbu (Nepal Himalaya)",
+      "elevation_approx_m": 5010,
+      "description": "Unburst Everest proglacial lake: Expanded to >1.3 km² below Lhotse Shar, under intensive radar tracking",
+      "bbox": [86.900, 27.880, 86.950, 27.920]
+    },
+    "chong_kumdan": {
+      "id": "chong_kumdan",
+      "name": "Chong Kumdan Glacier Dam",
+      "type": "focused_lake",
+      "basin": "Upper Shyok / Karakoram Trans-Himalaya",
+      "elevation_approx_m": 4720,
+      "description": "Unburst surge-dam watch: Historically famed Karakoram surge glacier reforming lateral melt ponds",
+      "bbox": [77.700, 35.135, 77.750, 35.175]
     }
   },
   "regional_scan_areas": {
@@ -92,6 +164,24 @@
       "approx_area_sq_km": 850,
       "description": "Large-scale 850 km² corridor tracking ephemeral ice dams and surge glaciers",
       "bbox": [77.100, 35.600, 77.450, 35.850]
+    },
+    "lahaul_spiti_regional": {
+      "id": "lahaul_spiti_regional",
+      "name": "Lahaul & Spiti Chandra Valley Regional Catchment",
+      "type": "regional_scan",
+      "basin": "Chandra-Bhaga Basin (Himachal Pradesh Western Himalaya)",
+      "approx_area_sq_km": 950,
+      "description": "Large-scale 950 km² high-risk corridor across Chandra basin encompassing Ghepan Gath, Samudra Tapu, and proglacial melt complexes",
+      "bbox": [77.100, 32.250, 77.550, 32.550]
+    },
+    "khumbu_everest_regional": {
+      "id": "khumbu_everest_regional",
+      "name": "Khumbu & Everest Glacial Corridor",
+      "type": "regional_scan",
+      "basin": "Dudh Koshi & Makalu High Himalaya",
+      "approx_area_sq_km": 1200,
+      "description": "Large-scale 1,200 km² Eastern Himalayan transect spanning Imja Tsho, Lower Barun, and surrounding unburst supraglacial lakes",
+      "bbox": [86.600, 27.700, 87.150, 28.050]
     }
   }
 }

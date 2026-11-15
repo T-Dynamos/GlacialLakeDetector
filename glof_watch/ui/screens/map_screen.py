@@ -372,10 +372,24 @@ class MapScreen(MDScreen):
     def _create_target_menu(self):
         """Builds MDDropdownMenu with categorized Focused Lakes & Regional Corridors."""
         menu_items = []
-        focused_order = ["gya", "kyagar", "drang_drung", "rumbak", "phyang", "parkachik"]
+        focused_order = [
+            "gya", "kyagar", "drang_drung", "rumbak", "phyang", "parkachik",
+            "ghepan_gath", "samudra_tapu", "chorabari_companion",
+            "lower_barun", "thorthormi", "tsho_rolpa", "imja_tsho", "chong_kumdan"
+        ]
         for key in focused_order:
             if key in self.focused_lakes:
                 target = self.focused_lakes[key]
+                t_name = target["name"]
+                elev = target.get("elevation_approx_m", "")
+                elev_str = f" ({elev}m)" if elev else ""
+                menu_items.append({
+                    "text": f"{t_name}{elev_str}",
+                    "leading_icon": "water",
+                    "on_release": lambda *a, k=key: self._on_menu_item_selected(k),
+                })
+        for key, target in self.focused_lakes.items():
+            if key not in focused_order:
                 t_name = target["name"]
                 elev = target.get("elevation_approx_m", "")
                 elev_str = f" ({elev}m)" if elev else ""
@@ -389,7 +403,9 @@ class MapScreen(MDScreen):
             "upper_indus_regional",
             "zanskar_regional",
             "suru_nun_kun_regional",
-            "shyok_karakoram_regional"
+            "shyok_karakoram_regional",
+            "lahaul_spiti_regional",
+            "khumbu_everest_regional"
         ]
         for key in regional_order:
             if key in self.regional_scan_areas:
@@ -402,11 +418,21 @@ class MapScreen(MDScreen):
                     "leading_icon": "radar",
                     "on_release": lambda *a, k=key: self._on_menu_item_selected(k),
                 })
+        for key, target in self.regional_scan_areas.items():
+            if key not in regional_order:
+                t_name = target["name"]
+                sq_km = target.get("approx_area_sq_km", "")
+                area_str = f" ({sq_km} km²)" if sq_km else ""
+                menu_items.append({
+                    "text": f"{t_name}{area_str}",
+                    "leading_icon": "radar",
+                    "on_release": lambda *a, k=key: self._on_menu_item_selected(k),
+                })
 
         return MDDropdownMenu(
             caller=self.btn_target_dropdown,
             items=menu_items,
-            max_height=dp(360),
+            max_height=dp(420),
             position="bottom",
         )
 

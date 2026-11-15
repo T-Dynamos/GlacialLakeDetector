@@ -40,12 +40,12 @@ def take_screenshot(filename: str):
 def run_capture():
     app = GLOFWatchApp()
 
-    # Step 1: Map Screen with Satellite imagery & Kyagar preset
+    # Step 1: Map Screen with Satellite imagery & Ghepan Gath unburst target preset
     def step_1_map_screen(dt):
-        print("\n=== STEP 1: MapScreen (Satellite Reticle & Coords HUD) ===")
+        print("\n=== STEP 1: MapScreen (Satellite Reticle & Coords HUD - Ghepan Gath Unburst Target) ===")
         Window.raise_window()
         app.switch_to_map()
-        app.map_screen.select_preset("kyagar", animate=False)
+        app.map_screen.select_preset("ghepan_gath", animate=False)
 
         def do_capture_map(dt2):
             take_screenshot("screen1_map_satellite.png")

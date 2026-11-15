@@ -138,9 +138,13 @@ def test_preset_jumping_focused_lakes(app_instance):
     """Verifies jumping to all focused lake targets updates coordinates, bbox, and HUD."""
     screen = MapScreen()
     targets = load_targets().get("focused_lakes", {})
-    assert len(targets) >= 6
+    assert len(targets) >= 14
 
-    expected_keys = ["gya", "kyagar", "drang_drung", "rumbak", "phyang", "parkachik"]
+    expected_keys = [
+        "gya", "kyagar", "drang_drung", "rumbak", "phyang", "parkachik",
+        "ghepan_gath", "samudra_tapu", "chorabari_companion",
+        "lower_barun", "thorthormi", "tsho_rolpa", "imja_tsho", "chong_kumdan"
+    ]
     for key in expected_keys:
         assert key in targets, f"Missing expected focused lake: {key}"
         screen.select_preset(key, animate=False)
@@ -164,13 +168,15 @@ def test_preset_jumping_regional_corridors(app_instance):
     """Verifies jumping to all regional scan corridors."""
     screen = MapScreen()
     targets = load_targets().get("regional_scan_areas", {})
-    assert len(targets) >= 4
+    assert len(targets) >= 6
 
     expected_corridors = [
         "upper_indus_regional",
         "zanskar_regional",
         "suru_nun_kun_regional",
         "shyok_karakoram_regional",
+        "lahaul_spiti_regional",
+        "khumbu_everest_regional"
     ]
     for key in expected_corridors:
         assert key in targets, f"Missing expected regional corridor: {key}"
@@ -263,3 +269,23 @@ def test_analyze_action_callback(app_instance):
     last_call = app_instance.analyzed_calls[-1]
     assert last_call[0] == event_bbox
     assert last_call[1]["id"] == "drang_drung"
+
+
+def test_target_dropdown_menu_items(app_instance):
+    """Verifies that the target dropdown menu is populated with all focused lakes and regional corridors."""
+    screen = MapScreen()
+    menu = screen._create_target_menu()
+    assert menu is not None
+    # 14 focused lakes + 6 regional scan areas = 20 presets
+    assert len(menu.items) == 20
+    item_texts = [item["text"] for item in menu.items]
+    assert any("Ghepan Gath" in t for t in item_texts)
+    assert any("Samudra Tapu" in t for t in item_texts)
+    assert any("Chorabari Snout" in t for t in item_texts)
+    assert any("Lower Barun" in t for t in item_texts)
+    assert any("Thorthormi" in t for t in item_texts)
+    assert any("Tsho Rolpa" in t for t in item_texts)
+    assert any("Imja Tsho" in t for t in item_texts)
+    assert any("Chong Kumdan" in t for t in item_texts)
+    assert any("Lahaul & Spiti" in t for t in item_texts)
+    assert any("Khumbu & Everest" in t for t in item_texts)

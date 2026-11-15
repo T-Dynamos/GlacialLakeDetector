@@ -26,7 +26,8 @@ from kivy.animation import Animation
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.card import MDCard
-from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon, MDIconButton
+from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
@@ -333,14 +334,16 @@ class MapScreen(MDScreen):
         )
 
         self.hud_coords_label = MDLabel(
-            text="CENTER: 34.2000° N | 77.6000° E",
+            text="[color=#90a4ae]CENTER:[/color] [b]34.2000° N, 77.6000° E[/b]",
+            markup=True,
             font_style="Label",
             role="medium",
             adaptive_size=True,
         )
 
         self.hud_scale_label = MDLabel(
-            text="ZOOM: 8 | 1 px ≈ 505.8 m",
+            text="[color=#90a4ae]ZOOM:[/color] [b]8[/b] [color=#546e7a]|[/color] [b]1 px ≈ 505.8 m[/b]",
+            markup=True,
             font_style="Label",
             role="medium",
             adaptive_size=True,
@@ -421,77 +424,99 @@ class MapScreen(MDScreen):
         self.select_preset(key)
 
     def _create_bbox_control_card(self) -> MDCard:
-        """Creates the bottom-left telemetry and interactive nudge control card."""
+        """Creates the bottom-left telemetry and interactive nudge control card with grid layout and icon font."""
         card = MDCard(
             style="elevated",
             pos_hint={"x": 0.02, "y": 0.03},
             size_hint=(None, None),
-            width=dp(460),
-            height=dp(135),
-            padding=[dp(14), dp(10), dp(14), dp(10)],
+            width=dp(420),
+            height=dp(170),
+            padding=[dp(16), dp(10), dp(16), dp(10)],
         )
 
         container = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(6),
+            spacing=dp(5),
             size_hint=(1, 1),
         )
 
         title = MDLabel(
-            text="ACTIVE AOI BOUNDING BOX [WGS84]",
+            text="[b]ACTIVE AOI BOUNDING BOX[/b]  [color=#00e5ff][WGS84][/color]",
+            markup=True,
             font_style="Label",
             role="large",
             adaptive_height=True,
         )
         container.add_widget(title)
 
-        # Live BBox readout
+        # Live BBox readout with Markdown markup support
         self.bbox_coords_label = MDLabel(
             text="",
+            markup=True,
             font_style="Body",
             role="medium",
             adaptive_height=True,
         )
         container.add_widget(self.bbox_coords_label)
 
-        # Dimension readout
+        # Dimension readout with Markdown markup support
         self.bbox_extent_label = MDLabel(
             text="",
+            markup=True,
             font_style="Label",
             role="medium",
             adaptive_height=True,
         )
         container.add_widget(self.bbox_extent_label)
 
-        # Interactive nudge buttons row
-        buttons_box = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(6),
-            adaptive_height=True,
+        # -------------------------------------------------------------
+        # Interactive Nudge Controls using MDGridLayout & Icon Font
+        # -------------------------------------------------------------
+        nudge_grid = MDGridLayout(
+            cols=7,
+            spacing=[dp(6), dp(2)],
+            size_hint=(1, None),
+            height=dp(54),
+            pos_hint={"center_x": 0.5}
         )
 
         nudge_actions = [
-            ("▲ N", lambda: self.nudge_bbox("north")),
-            ("▼ S", lambda: self.nudge_bbox("south")),
-            ("◄ W", lambda: self.nudge_bbox("west")),
-            ("► E", lambda: self.nudge_bbox("east")),
-            ("+ Size", lambda: self.resize_bbox(0.005)),
-            ("- Size", lambda: self.resize_bbox(-0.005)),
-            ("Reset", self.reset_bbox_to_preset),
+            ("arrow-up", "tonal", "N", lambda: self.nudge_bbox("north")),
+            ("arrow-down", "tonal", "S", lambda: self.nudge_bbox("south")),
+            ("arrow-left", "tonal", "W", lambda: self.nudge_bbox("west")),
+            ("arrow-right", "tonal", "E", lambda: self.nudge_bbox("east")),
+            ("plus", "outlined", "+Size", lambda: self.resize_bbox(0.005)),
+            ("minus", "outlined", "-Size", lambda: self.resize_bbox(-0.005)),
+            ("restore", "outlined", "Reset", self.reset_bbox_to_preset),
         ]
 
-        for text, func in nudge_actions:
-            btn = MDButton(
-                MDButtonText(text=text),
-                style="outlined",
+        # Row 1: Icon buttons from icon font
+        for icon_name, btn_style, label_text, func in nudge_actions:
+            btn = MDIconButton(
+                icon=icon_name,
+                style=btn_style,
                 size_hint=(None, None),
-                height=dp(28),
+                size=(dp(36), dp(36)),
+                pos_hint={"center_x": 0.5}
             )
-            # Wrap in closure
             btn.bind(on_release=lambda *a, f=func: f())
-            buttons_box.add_widget(btn)
+            nudge_grid.add_widget(btn)
 
-        container.add_widget(buttons_box)
+        # Row 2: Micro-labels underneath each icon button
+        for icon_name, btn_style, label_text, func in nudge_actions:
+            lbl = MDLabel(
+                text=f"[color=#90a4ae]{label_text}[/color]",
+                markup=True,
+                font_style="Label",
+                role="small",
+                halign="center",
+                adaptive_height=True,
+                size_hint_x=None,
+                width=dp(36)
+            )
+            nudge_grid.add_widget(lbl)
+
+        container.add_widget(nudge_grid)
         card.add_widget(container)
         return card
 
@@ -627,8 +652,8 @@ class MapScreen(MDScreen):
         lon_dir = "E" if lon >= 0 else "W"
         scale_str = format_scale_indicator(lat, zoom)
 
-        self.hud_coords_label.text = f"CENTER: {abs(lat):.4f}° {lat_dir} | {abs(lon):.4f}° {lon_dir}"
-        self.hud_scale_label.text = f"ZOOM: {zoom} | {scale_str}"
+        self.hud_coords_label.text = f"[color=#90a4ae]CENTER:[/color] [b]{abs(lat):.4f}° {lat_dir}, {abs(lon):.4f}° {lon_dir}[/b]"
+        self.hud_scale_label.text = f"[color=#90a4ae]ZOOM:[/color] [b]{zoom}[/b] [color=#546e7a]|[/color] [b]{scale_str}[/b]"
 
         target_name = (
             self.current_target_info.get("name", "Custom AOI")
@@ -640,15 +665,19 @@ class MapScreen(MDScreen):
         if hasattr(self, "hud_target_label") and self.hud_target_label:
             self.hud_target_label.text = f"AOI: {target_name}"
 
-        # Bounding box readout
+        # Bounding box readout with rich Markdown markup
         b = self.bbox
         if len(b) == 4:
             self.bbox_coords_label.text = (
-                f"[{b[0]:.4f}° E, {b[1]:.4f}° N] -> [{b[2]:.4f}° E, {b[3]:.4f}° N]"
+                f"[color=#80cbc4][b]{b[0]:.4f}° E, {b[1]:.4f}° N[/b][/color]  "
+                f"[color=#546e7a]→[/color]  "
+                f"[color=#80cbc4][b]{b[2]:.4f}° E, {b[3]:.4f}° N[/b][/color]"
             )
             w_km, h_km, area_km2 = calculate_bbox_dimensions_km(b)
             self.bbox_extent_label.text = (
-                f"Footprint: {w_km:.2f} km × {h_km:.2f} km | Area: {area_km2:.1f} km²"
+                f"[color=#b0bec5]Footprint:[/color] [b]{w_km:.2f} km × {h_km:.2f} km[/b]  "
+                f"[color=#546e7a]|[/color]  "
+                f"[color=#b0bec5]Area:[/color] [b][color=#26a69a]{area_km2:.1f} km²[/color][/b]"
             )
 
     def on_analyze_pressed(self):

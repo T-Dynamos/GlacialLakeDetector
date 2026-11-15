@@ -19,6 +19,7 @@ Config.set('graphics', 'height', '800')
 
 from kivy.clock import Clock
 from kivy.core.window import Window
+Window.always_on_top = True
 from glof_watch.ui.app import GLOFWatchApp
 from glof_watch.ui.inventory import get_lake_by_id
 
@@ -42,6 +43,7 @@ def run_capture():
     # Step 1: Map Screen with Satellite imagery & Kyagar preset
     def step_1_map_screen(dt):
         print("\n=== STEP 1: MapScreen (Satellite Reticle & Coords HUD) ===")
+        Window.raise_window()
         app.switch_to_map()
         app.map_screen.select_preset("kyagar", animate=False)
 

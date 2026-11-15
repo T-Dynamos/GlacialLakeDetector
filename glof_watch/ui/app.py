@@ -11,6 +11,7 @@ os.environ.setdefault("QT_API", "pyqt6")
 
 from typing import Optional, List, Dict, Any
 
+from kivy.metrics import dp
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screenmanager import MDScreenManager
@@ -53,79 +54,73 @@ class GLOFWatchApp(MDApp):
         root = MDBoxLayout(orientation="vertical", size_hint=(1, 1))
 
         # -------------------------------------------------------------
-        # Top Navigation Bar (MDTopAppBar)
+        # Single Unified Scientific Top Navigation Bar
         # -------------------------------------------------------------
-        top_app_bar = MDTopAppBar(
-            MDTopAppBarLeadingButtonContainer(
-                MDIconButton(
-                    icon="satellite-variant",
-                    on_release=lambda *args: self.switch_to_map()
-                )
-            ),
-            MDTopAppBarTitle(
-                text="GLOF-WATCH: High-Altitude Radar-DEM Engine"
-            ),
-            MDTopAppBarTrailingButtonContainer(
-                MDIconButton(
-                    icon="map-search",
-                    on_release=lambda *args: self.switch_to_map()
-                ),
-                MDIconButton(
-                    icon="chart-bell-curve-cumulative",
-                    on_release=lambda *args: self.switch_to_analysis()
-                ),
-                MDIconButton(
-                    icon="database-search",
-                    on_release=lambda *args: self.switch_to_search()
-                )
-            ),
-            type="small"
-        )
-        root.add_widget(top_app_bar)
-
-        # -------------------------------------------------------------
-        # Quick Navigation & Active Target Sub-Bar
-        # -------------------------------------------------------------
-        sub_bar = MDBoxLayout(
+        header_bar = MDBoxLayout(
             orientation="horizontal",
             size_hint=(1, None),
-            height=46,
-            padding=[16, 4, 16, 4],
-            spacing=10
+            height=dp(52),
+            padding=[dp(16), dp(6), dp(16), dp(6)],
+            spacing=dp(10)
         )
 
-        self.lbl_active_target = MDLabel(
-            text=f"ACTIVE TARGET: {self.active_target_name.upper()}",
-            font_style="Label",
-            role="large",
-            bold=True,
-            size_hint_x=0.45
-        )
-        sub_bar.add_widget(self.lbl_active_target)
-
-        btn_nav_map = MDButton(
-            MDButtonIcon(icon="map-outline"),
-            MDButtonText(text="Map & AOI"),
-            style="tonal",
+        # Brand / Mission Title with Markdown markup
+        brand_box = MDBoxLayout(orientation="horizontal", spacing=dp(8), adaptive_width=True)
+        btn_logo = MDIconButton(
+            icon="satellite-variant",
             on_release=lambda *args: self.switch_to_map()
         )
-        btn_nav_analysis = MDButton(
+        lbl_title = MDLabel(
+            text="[b]GLOF-WATCH[/b] [color=#546e7a]|[/color] High-Altitude Radar-DEM Engine",
+            markup=True,
+            font_style="Title",
+            role="medium",
+            adaptive_size=True,
+            pos_hint={"center_y": 0.5}
+        )
+        brand_box.add_widget(btn_logo)
+        brand_box.add_widget(lbl_title)
+        header_bar.add_widget(brand_box)
+
+        # Active Target Telemetry Badge with Markdown markup
+        self.lbl_active_target = MDLabel(
+            text=f"[color=#80cbc4]TARGET:[/color] [b]{self.active_target_name.upper()}[/b]",
+            markup=True,
+            font_style="Label",
+            role="large",
+            halign="center",
+            size_hint=(1, None),
+            height=dp(36),
+            pos_hint={"center_y": 0.5}
+        )
+        header_bar.add_widget(self.lbl_active_target)
+
+        # Main Screen Navigation Selector Pills
+        nav_box = MDBoxLayout(orientation="horizontal", spacing=dp(8), adaptive_width=True, pos_hint={"center_y": 0.5})
+        self.btn_nav_map = MDButton(
+            MDButtonIcon(icon="map-outline"),
+            MDButtonText(text="Map & AOI"),
+            style="filled",
+            on_release=lambda *args: self.switch_to_map()
+        )
+        self.btn_nav_analysis = MDButton(
             MDButtonIcon(icon="radar"),
             MDButtonText(text="Analysis & 3D"),
             style="tonal",
             on_release=lambda *args: self.switch_to_analysis()
         )
-        btn_nav_search = MDButton(
+        self.btn_nav_search = MDButton(
             MDButtonIcon(icon="table-search"),
             MDButtonText(text="Search & Verify"),
             style="tonal",
             on_release=lambda *args: self.switch_to_search()
         )
+        nav_box.add_widget(self.btn_nav_map)
+        nav_box.add_widget(self.btn_nav_analysis)
+        nav_box.add_widget(self.btn_nav_search)
+        header_bar.add_widget(nav_box)
 
-        sub_bar.add_widget(btn_nav_map)
-        sub_bar.add_widget(btn_nav_analysis)
-        sub_bar.add_widget(btn_nav_search)
-        root.add_widget(sub_bar)
+        root.add_widget(header_bar)
 
         # -------------------------------------------------------------
         # ScreenManager: Orchestrating Screens
@@ -157,10 +152,14 @@ class GLOFWatchApp(MDApp):
 
         self.active_target_name = name
         if self.lbl_active_target:
-            self.lbl_active_target.text = f"ACTIVE TARGET: {name.upper()}"
+            self.lbl_active_target.text = f"[color=#80cbc4]TARGET:[/color] [b]{name.upper()}[/b]"
 
     def switch_to_map(self, lat: Optional[float] = None, lon: Optional[float] = None, zoom: Optional[int] = None):
         """Switches view to MapScreen and optionally centers coordinates."""
+        if hasattr(self, "btn_nav_map"):
+            self.btn_nav_map.style = "filled"
+            self.btn_nav_analysis.style = "tonal"
+            self.btn_nav_search.style = "tonal"
         if self.screen_manager:
             self.screen_manager.current = "map_screen"
         if lat is not None and lon is not None and self.map_screen:
@@ -201,6 +200,11 @@ class GLOFWatchApp(MDApp):
 
         self.set_active_target(target_info or target_name)
 
+        if hasattr(self, "btn_nav_map"):
+            self.btn_nav_map.style = "tonal"
+            self.btn_nav_analysis.style = "filled"
+            self.btn_nav_search.style = "tonal"
+
         # Clean analysis screen state before switching so old runs are completely purged
         if self.analysis_screen:
             self.analysis_screen.reset_screen_state(target_name=target_name, bbox=bbox)
@@ -213,6 +217,10 @@ class GLOFWatchApp(MDApp):
 
     def switch_to_search(self, detected_lake: Optional[Dict[str, Any]] = None):
         """Switches view to SearchScreen and optionally loads detected lake for cross-check."""
+        if hasattr(self, "btn_nav_map"):
+            self.btn_nav_map.style = "tonal"
+            self.btn_nav_analysis.style = "tonal"
+            self.btn_nav_search.style = "filled"
         if self.screen_manager:
             self.screen_manager.current = "search_screen"
 

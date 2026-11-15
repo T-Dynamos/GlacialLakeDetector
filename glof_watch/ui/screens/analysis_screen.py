@@ -29,6 +29,12 @@ from kivymd.uix.progressindicator import MDLinearProgressIndicator
 from glof_watch.pipeline import run_detection_for_bbox
 from glof_watch.ui.vispy_3d import render_3d_terrain_rgba, launch_interactive_vispy_window
 from glof_watch.ui.theme import apply_button_style, apply_card_style
+from glof_watch.susceptibility import (
+    get_site_susceptibility,
+    GLOFSusceptibilityEngine,
+    CRITERIA_NAMES,
+    CRITERIA_KEYS
+)
 
 
 class AnalysisScreen(MDScreen):
@@ -138,13 +144,13 @@ class AnalysisScreen(MDScreen):
         self.card_shadow.add_widget(MDLabel(text="false positives cut", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_shadow)
 
-        # Card 4: Hazard Risk Level
+        # Card 4: AHP Susceptibility Level
         self.card_risk = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(6), dp(8), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)])
         apply_card_style(self.card_risk)
-        self.card_risk.add_widget(MDLabel(text="HAZARD RISK LEVEL", font_style="Label", role="small", halign="center"))
+        self.card_risk.add_widget(MDLabel(text="AHP SUSCEPTIBILITY", font_style="Label", role="small", halign="center"))
         self.kpi_risk_level = MDLabel(text="STANDBY", font_style="Headline", role="small", halign="center", bold=True)
         self.card_risk.add_widget(self.kpi_risk_level)
-        self.card_risk.add_widget(MDLabel(text="GSI score index", font_style="Body", role="small", halign="center"))
+        self.card_risk.add_widget(MDLabel(text="multi-criteria tier", font_style="Body", role="small", halign="center"))
         kpi_row.add_widget(self.card_risk)
 
         # Card 5: Elevation
@@ -196,6 +202,11 @@ class AnalysisScreen(MDScreen):
             MDButtonText(text="3D Relief Hub"),
             on_release=lambda *args: self.switch_view_mode("3d")
         )
+        self.btn_view_ahp = MDButton(
+            MDButtonIcon(icon="shield-alert-outline"),
+            MDButtonText(text="AHP Susceptibility"),
+            on_release=lambda *args: self.switch_view_mode("ahp")
+        )
         self.btn_view_orbit = MDButton(
             MDButtonIcon(icon="rotate-3d-variant"),
             MDButtonText(text="Launch 3D Window"),
@@ -204,10 +215,12 @@ class AnalysisScreen(MDScreen):
         apply_button_style(self.btn_view_sat, "active")
         apply_button_style(self.btn_view_2d, "inactive")
         apply_button_style(self.btn_view_3d, "inactive")
+        apply_button_style(self.btn_view_ahp, "inactive")
         apply_button_style(self.btn_view_orbit, "action")
         view_bar.add_widget(self.btn_view_sat)
         view_bar.add_widget(self.btn_view_2d)
         view_bar.add_widget(self.btn_view_3d)
+        view_bar.add_widget(self.btn_view_ahp)
         view_bar.add_widget(self.btn_view_orbit)
         left_col.add_widget(view_bar)
 
@@ -383,6 +396,129 @@ class AnalysisScreen(MDScreen):
         )
         self.card_3d_hub.add_widget(self.image_3d)
 
+        # ---------------------------------------------------------
+        # AHP Susceptibility Inspector Hub Box
+        # ---------------------------------------------------------
+        self.card_ahp_hub = MDBoxLayout(
+            orientation="vertical",
+            padding=[dp(16), dp(12), dp(16), dp(12)],
+            spacing=dp(8),
+            radius=[dp(10), dp(10), dp(10), dp(10)],
+            size_hint=(1, 1)
+        )
+        apply_card_style(self.card_ahp_hub)
+
+        ahp_header = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=32,
+            spacing=10
+        )
+        ahp_header.add_widget(
+            MDLabel(
+                text="AHP GLOF SUSCEPTIBILITY ASSESSMENT",
+                font_style="Title",
+                role="medium",
+                bold=True,
+                size_hint_x=0.62
+            )
+        )
+        self.lbl_ahp_badge = MDLabel(
+            text="SCORE: -- / 100",
+            font_style="Label",
+            role="large",
+            halign="right",
+            bold=True,
+            size_hint_x=0.38
+        )
+        ahp_header.add_widget(self.lbl_ahp_badge)
+        self.card_ahp_hub.add_widget(ahp_header)
+
+        # 3 KPI summary cards
+        ahp_kpi_row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=8,
+            size_hint=(1, None),
+            height=66
+        )
+
+        card_ahp_score = MDBoxLayout(orientation="vertical", padding=dp(4), spacing=dp(1), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_ahp_score)
+        card_ahp_score.add_widget(MDLabel(text="SUSCEPTIBILITY SCORE", font_style="Label", role="small", halign="center"))
+        self.lbl_ahp_score_val = MDLabel(text="-- / 100", font_style="Headline", role="small", halign="center", bold=True)
+        card_ahp_score.add_widget(self.lbl_ahp_score_val)
+        self.lbl_ahp_tier_val = MDLabel(text="Tier: STANDBY", font_style="Body", role="small", halign="center")
+        card_ahp_score.add_widget(self.lbl_ahp_tier_val)
+        ahp_kpi_row.add_widget(card_ahp_score)
+
+        card_ahp_dam = MDBoxLayout(orientation="vertical", padding=dp(4), spacing=dp(1), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_ahp_dam)
+        card_ahp_dam.add_widget(MDLabel(text="DAM CLASSIFICATION", font_style="Label", role="small", halign="center"))
+        self.lbl_ahp_dam_val = MDLabel(text="--", font_style="Title", role="small", halign="center", bold=True)
+        card_ahp_dam.add_widget(self.lbl_ahp_dam_val)
+        self.lbl_ahp_dam_sub = MDLabel(text="Structural containment", font_style="Body", role="small", halign="center")
+        card_ahp_dam.add_widget(self.lbl_ahp_dam_sub)
+        ahp_kpi_row.add_widget(card_ahp_dam)
+
+        card_ahp_comp = MDBoxLayout(orientation="vertical", padding=dp(4), spacing=dp(1), radius=[dp(6), dp(6), dp(6), dp(6)])
+        apply_card_style(card_ahp_comp)
+        card_ahp_comp.add_widget(MDLabel(text="DATA COMPLETENESS", font_style="Label", role="small", halign="center"))
+        self.lbl_ahp_comp_val = MDLabel(text="100.0%", font_style="Headline", role="small", halign="center", bold=True)
+        card_ahp_comp.add_widget(self.lbl_ahp_comp_val)
+        self.lbl_ahp_conf_val = MDLabel(text="Tier I High Confidence", font_style="Body", role="small", halign="center")
+        card_ahp_comp.add_widget(self.lbl_ahp_conf_val)
+        ahp_kpi_row.add_widget(card_ahp_comp)
+
+        self.card_ahp_hub.add_widget(ahp_kpi_row)
+
+        # Scrollable Detailed Breakdown
+        ahp_scroll = ScrollView(size_hint=(1, 1))
+        ahp_body = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(6),
+            adaptive_height=True,
+            padding=[dp(2), dp(4), dp(2), dp(4)]
+        )
+
+        # Dominant Concerns Card
+        card_concerns = MDBoxLayout(orientation="vertical", padding=[dp(10), dp(6), dp(10), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)], size_hint=(1, None), height=dp(68))
+        apply_card_style(card_concerns)
+        card_concerns.add_widget(MDLabel(text="PRIMARY PHYSICAL SUSCEPTIBILITY DRIVERS", font_style="Label", role="medium", bold=True))
+        self.lbl_ahp_concerns = MDLabel(text="Awaiting target evaluation...", font_style="Body", role="small")
+        card_concerns.add_widget(self.lbl_ahp_concerns)
+        ahp_body.add_widget(card_concerns)
+
+        # 8-Criteria Contribution Breakdown Table Card
+        card_breakdown = MDBoxLayout(orientation="vertical", padding=[dp(10), dp(6), dp(10), dp(6)], spacing=dp(3), radius=[dp(8), dp(8), dp(8), dp(8)], size_hint=(1, None), height=dp(185))
+        apply_card_style(card_breakdown)
+        card_breakdown.add_widget(MDLabel(text="8-CRITERIA AHP NORMALIZED WEIGHTS & CONTRIBUTIONS", font_style="Label", role="medium", bold=True))
+        self.lbl_ahp_breakdown = MDLabel(text="Criteria loading...", font_style="Body", role="small", markup=True)
+        card_breakdown.add_widget(self.lbl_ahp_breakdown)
+        ahp_body.add_widget(card_breakdown)
+
+        # Physical Explainability Narrative Card
+        card_narrative = MDBoxLayout(orientation="vertical", padding=[dp(10), dp(6), dp(10), dp(6)], spacing=dp(2), radius=[dp(8), dp(8), dp(8), dp(8)], size_hint=(1, None), height=dp(110))
+        apply_card_style(card_narrative)
+        card_narrative.add_widget(MDLabel(text="EXPLAINABLE PHYSICAL ASSESSMENT & GEOMORPHIC CONTEXT", font_style="Label", role="medium", bold=True))
+        self.lbl_ahp_narrative = MDLabel(text="Evaluation narrative loading...", font_style="Body", role="small")
+        card_narrative.add_widget(self.lbl_ahp_narrative)
+        ahp_body.add_widget(card_narrative)
+
+        # Scientific Disclaimer Box
+        card_disclaimer = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(4), dp(8), dp(4)], spacing=dp(1), radius=[dp(6), dp(6), dp(6), dp(6)], size_hint=(1, None), height=dp(44))
+        apply_card_style(card_disclaimer)
+        self.lbl_ahp_disclaimer = MDLabel(
+            text="[b]METHODOLOGICAL NOTICE:[/b] AHP Susceptibility evaluates static geomorphic predisposition (0-100 index). It is NOT an outburst probability and does not represent imminent failure.",
+            markup=True,
+            font_style="Body",
+            role="small"
+        )
+        card_disclaimer.add_widget(self.lbl_ahp_disclaimer)
+        ahp_body.add_widget(card_disclaimer)
+
+        ahp_scroll.add_widget(ahp_body)
+        self.card_ahp_hub.add_widget(ahp_scroll)
+
         # Start with Satellite Shoreline View active
         self.view_container.add_widget(self.scatter_sat)
         left_col.add_widget(self.view_container)
@@ -523,6 +659,7 @@ class AnalysisScreen(MDScreen):
                         elevations.append(props["elevation_m"])
 
                 self.kpi_risk_level.text = risk
+                self._update_ahp_kpi()
                 mean_elev = float(np.mean(elevations)) if elevations else 4746.0
                 self.kpi_elevation.text = f"{mean_elev:,.0f} m"
                 self.lbl_status_badge.text = "STATUS: CACHED MISSION READY"
@@ -688,6 +825,7 @@ class AnalysisScreen(MDScreen):
                 elevations.append(props["elevation_m"])
 
         self.kpi_risk_level.text = risk
+        self._update_ahp_kpi()
         mean_elev = float(np.mean(elevations)) if elevations else (
             float(np.mean(self.dem_arr)) if self.dem_arr is not None else 4700.0
         )
@@ -732,22 +870,106 @@ class AnalysisScreen(MDScreen):
         self.append_log(f"[ERROR] Pipeline execution failed: {error_message}")
 
     def switch_view_mode(self, mode: str):
-        """Toggles between Satellite Shoreline, 2D Diagnostic figure, and 3D terrain relief hub."""
+        """Toggles between Satellite Shoreline, 2D Diagnostic figure, 3D terrain relief hub, and AHP Susceptibility."""
         self.active_view_mode = mode
         self.view_container.clear_widgets()
 
         apply_button_style(self.btn_view_sat, "active" if mode == "sat" else "inactive")
         apply_button_style(self.btn_view_2d, "active" if mode == "2d" else "inactive")
         apply_button_style(self.btn_view_3d, "active" if mode == "3d" else "inactive")
+        apply_button_style(self.btn_view_ahp, "active" if mode == "ahp" else "inactive")
         apply_button_style(self.btn_view_orbit, "action")
 
         if mode == "sat":
             self.view_container.add_widget(self.scatter_sat)
         elif mode == "2d":
             self.view_container.add_widget(self.scatter_2d)
-        else:
+        elif mode == "3d":
             self._update_3d_telemetry_card()
             self.view_container.add_widget(self.card_3d_hub)
+        elif mode == "ahp":
+            self._update_ahp_telemetry_card()
+            self.view_container.add_widget(self.card_ahp_hub)
+
+    def _update_ahp_kpi(self):
+        """Updates Card 4 KPI text with AHP susceptibility category and score."""
+        target_ref = self.target_id or self.target_name
+        sus_res = get_site_susceptibility(target_ref)
+        if sus_res.get("is_excluded"):
+            self.kpi_risk_level.text = "EXCLUDED"
+        else:
+            score = sus_res.get("susceptibility_score", 0.0)
+            cat = sus_res.get("susceptibility_category", "MODERATE")
+            self.kpi_risk_level.text = f"{cat} ({score:.1f})"
+
+    def _update_ahp_telemetry_card(self):
+        """Populates the AHP Susceptibility Hub with physics-informed metrics."""
+        target_ref = self.target_id or self.target_name
+        sus_res = get_site_susceptibility(target_ref)
+
+        if sus_res.get("is_excluded"):
+            self.lbl_ahp_badge.text = "STATUS: EXCLUDED (NON-GLOF)"
+            self.lbl_ahp_score_val.text = "N/A"
+            self.lbl_ahp_tier_val.text = "NON-LAKE CATCHMENT"
+            self.lbl_ahp_dam_val.text = "Unconfined Cirque Scree"
+            self.lbl_ahp_dam_sub.text = "No moraine or ice dam"
+            self.lbl_ahp_comp_val.text = "100.0%"
+            self.lbl_ahp_conf_val.text = "Tier II Moderate Confidence"
+            self.lbl_ahp_concerns.text = "Phyang Cirque is disqualified from GLOF dam-breach assessments (lacks impounding moraine/ice dam; 2006 flood was cloudburst debris flow)."
+            self.lbl_ahp_breakdown.text = "Criteria evaluation bypassed: Target is an unconfined headwall cirque debris-flow catchment."
+            self.lbl_ahp_narrative.text = sus_res.get("explanation", "")
+            return
+
+        score = sus_res.get("susceptibility_score", 0.0)
+        cat = sus_res.get("susceptibility_category", "MODERATE")
+
+        self.lbl_ahp_badge.text = f"SCORE: {score:.1f} / 100 [{cat}]"
+        self.lbl_ahp_score_val.text = f"{score:.1f} / 100"
+        self.lbl_ahp_tier_val.text = f"Tier: {cat}"
+
+        # Site-specific dam label
+        t_lower = target_ref.lower()
+        if "kyagar" in t_lower:
+            self.lbl_ahp_dam_val.text = "Surge Glacier Ice Dam"
+            self.lbl_ahp_dam_sub.text = "Subglacial tunneling risk (70m ice barrier)"
+        elif "rumbak" in t_lower:
+            self.lbl_ahp_dam_val.text = "Ice-Cored Moraine"
+            self.lbl_ahp_dam_sub.text = "Breached piping conduit (0m freeboard)"
+        elif "gya" in t_lower:
+            self.lbl_ahp_dam_val.text = "Ice-Cored Moraine"
+            self.lbl_ahp_dam_sub.text = "Post-piping breach channel (8m freeboard)"
+        elif "parkachik" in t_lower:
+            self.lbl_ahp_dam_val.text = "Bedrock Sill & Till"
+            self.lbl_ahp_dam_sub.text = "Overdeepened snout basin (18m freeboard)"
+        elif "drang" in t_lower:
+            self.lbl_ahp_dam_val.text = "Composite Moraine Dam"
+            self.lbl_ahp_dam_sub.text = "Massive till rampart >250m (25m freeboard)"
+        else:
+            self.lbl_ahp_dam_val.text = "Glacial Dam"
+            self.lbl_ahp_dam_sub.text = "Geotechnical containment"
+
+        comp = sus_res.get("data_completeness_pct", 100.0)
+        conf = sus_res.get("confidence_tier", "TIER_I_HIGH_CONFIDENCE")
+        self.lbl_ahp_comp_val.text = f"{comp:.1f}%"
+        self.lbl_ahp_conf_val.text = conf.replace("_", " ").title()
+
+        # Dominant concerns
+        concerns = sus_res.get("dominant_concerns", [])
+        self.lbl_ahp_concerns.text = "\n".join([f"• {c}" for c in concerns]) if concerns else "No critical physical drivers identified."
+
+        # Breakdown table
+        contribs = sus_res.get("weighted_contributions", {})
+        sub_s = sus_res.get("sub_scores", {})
+        lines = []
+        for k in CRITERIA_KEYS:
+            name = CRITERIA_NAMES[k]
+            pts = contribs.get(k, 0.0)
+            val = sub_s.get(k)
+            val_str = f"{val:.2f}" if val is not None else "N/A"
+            lines.append(f"• [b]{name}:[/b] subscore {val_str} -> [color=00ffff]{pts:.1f} pts[/color]")
+        self.lbl_ahp_breakdown.text = "\n".join(lines)
+
+        self.lbl_ahp_narrative.text = sus_res.get("explanation", "")
 
     def _update_3d_telemetry_card(self):
         """Refreshes elevation and grid metrics on card_3d_hub without OpenGL rendering."""

@@ -547,11 +547,18 @@ class SearchScreen(MDScreen):
             text_color=COLOR_TEXT_PRIMARY
         )
         glof_badge = " [HISTORICAL GLOF]" if lake.get("historical_glof") else ""
+        if lake.get("is_excluded"):
+            badge_text = "[EXCLUDED (NON-GLOF)]"
+            hazard_color = COLOR_TEXT_MUTED
+        elif lake.get("ahp_score") is not None:
+            badge_text = f"[AHP: {lake['ahp_category']} ({lake['ahp_score']:.1f})]{glof_badge}"
+        else:
+            badge_text = f"[{hazard}]{glof_badge}"
         badge_lbl = MDLabel(
-            text=f"[{hazard}]{glof_badge}",
+            text=badge_text,
             font_size="11sp",
             bold=True,
-            size_hint_x=0.32,
+            size_hint_x=0.38,
             halign="right",
             theme_text_color="Custom",
             text_color=hazard_color

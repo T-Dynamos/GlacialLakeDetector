@@ -1,0 +1,12 @@
+Parameter,Value,Unit,Notes
+2017 Water Surface Area,0.35,ha,Baseline Sentinel-1 (2017-09-05)
+2020 Water Surface Area,1.54,ha,Benchmark Sentinel-1 (2020-09-07)
+2023 Water Surface Area,0.54,ha,Benchmark Sentinel-1 (2023-08-29)
+2024 Water Surface Area,0.49,ha,Current extent (2024-09-16)
+Net 7-Year Area Change (ΔA),0.14,ha,2017 to 2024 surface growth/loss
+Water Surface Elevation,5350,m a.s.l.,Derived from Copernicus GLO-30 DSM
+Surrounding Terrain Slope,nan,degrees,Mean slope within 500m of feature centroid
+Regional Mean Basin Slope,26.2,degrees,Mean slope across 100 km² catchment
+Lake / Feature Type,High-Altitude Cirque Amphitheater (Ephemeral Melt Ponds),Classification,Geomorphic classification
+Downstream Drainage Pathway,Phyang Tokpo -> Phyang Village -> Indus River,Drainage System,Outflow routing
+Vulnerable Infrastructure,"Phyang monastery, Phyang village, Leh airport perimeter",Settlements / Arterials,Downstream human exposure

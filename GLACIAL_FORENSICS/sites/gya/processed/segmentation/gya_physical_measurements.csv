@@ -1,0 +1,12 @@
+Parameter,Value,Unit,Notes
+2017 Water Surface Area,7.13,ha,Baseline Sentinel-1 (2017-09-05)
+2020 Water Surface Area,12.78,ha,Benchmark Sentinel-1 (2020-09-13)
+2023 Water Surface Area,6.56,ha,Benchmark Sentinel-1 (2023-08-29)
+2024 Water Surface Area,12.09,ha,Current extent (2024-09-16)
+Net 7-Year Area Change (ΔA),4.96,ha,2017 to 2024 surface growth/loss
+Water Surface Elevation,5411,m a.s.l.,Derived from Copernicus GLO-30 DSM
+Surrounding Terrain Slope,nan,degrees,Mean slope within 500m of feature centroid
+Regional Mean Basin Slope,24.4,degrees,Mean slope across 100 km² catchment
+Lake / Feature Type,Moraine-Dammed Cirque Lake (Post-Piping Remnant),Classification,Geomorphic classification
+Downstream Drainage Pathway,Gya Nala -> Miru -> Upshi -> Upper Indus River,Drainage System,Outflow routing
+Vulnerable Infrastructure,"Gya village, Leh-Manali Highway (NH-3)",Settlements / Arterials,Downstream human exposure

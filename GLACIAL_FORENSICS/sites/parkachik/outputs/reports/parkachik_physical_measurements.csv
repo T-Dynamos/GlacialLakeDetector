@@ -1,0 +1,12 @@
+Parameter,Value,Unit,Notes
+2017 Water Surface Area,6.15,ha,Baseline Sentinel-1 (2017-09-10)
+2020 Water Surface Area,10.93,ha,Benchmark Sentinel-1 (2020-09-18)
+2023 Water Surface Area,2.90,ha,Benchmark Sentinel-1 (2023-09-03)
+2024 Water Surface Area,11.11,ha,Current extent (2024-09-09)
+Net 7-Year Area Change (ΔA),4.96,ha,2017 to 2024 surface growth/loss
+Water Surface Elevation,4200,m a.s.l.,Derived from Copernicus GLO-30 DSM
+Surrounding Terrain Slope,nan,degrees,Mean slope within 500m of feature centroid
+Regional Mean Basin Slope,25.9,degrees,Mean slope across 100 km² catchment
+Lake / Feature Type,Bedrock Overdeepening Proglacial Snout Pond,Classification,Geomorphic classification
+Downstream Drainage Pathway,Suru River -> Panikhar -> Sankoo -> Kargil -> Indus River,Drainage System,Outflow routing
+Vulnerable Infrastructure,"Parkachik village, Kargil-Zanskar highway (NH-301)",Settlements / Arterials,Downstream human exposure

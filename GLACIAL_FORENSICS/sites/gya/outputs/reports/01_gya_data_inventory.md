@@ -1,0 +1,46 @@
+# GLACIAL FORENSICS — Data Inventory: Gya Glacial Lake
+
+**Site ID:** `HMAGLOF_GYA_2014` | **Basin:** Gya Nala -> Miru -> Upshi -> Upper Indus River
+
+Total Files Cataloged: **38**
+
+| Filename                            | Relative_Path                                           | Type                 |   Size_KB | Status             | Analysis_Suitability   |
+|:------------------------------------|:--------------------------------------------------------|:---------------------|----------:|:-------------------|:-----------------------|
+| gya_dem_terrain_qc.png              | outputs/gya_dem_terrain_qc.png                          | Cartographic Graphic |    1373   | Processed Analysis | Verified & Suitable    |
+| gya_lake_segmentation_overlay.png   | outputs/gya_lake_segmentation_overlay.png               | Cartographic Graphic |    1773.3 | Processed Analysis | Verified & Suitable    |
+| gya_s1_multitemporal_comparison.png | outputs/gya_s1_multitemporal_comparison.png             | Cartographic Graphic |    1657   | Processed Analysis | Verified & Suitable    |
+| gya_physical_measurements.csv       | outputs/reports/gya_physical_measurements.csv           | Tabular Data         |       0.9 | Processed Analysis | Verified & Suitable    |
+| gya_segmentation_sensitivity.csv    | outputs/reports/gya_segmentation_sensitivity.csv        | Tabular Data         |       0.2 | Processed Analysis | Verified & Suitable    |
+| 2017-09-05_2017_p136_vh_db.tif      | processed/2017-09-05_2017_p136_vh_db.tif                | GeoTIFF Raster       |    4263.2 | Processed Analysis | Verified & Suitable    |
+| 2017-09-05_2017_p136_vv_db.tif      | processed/2017-09-05_2017_p136_vv_db.tif                | GeoTIFF Raster       |    4426.4 | Processed Analysis | Verified & Suitable    |
+| 2020-09-13_2020_p136_vh_db.tif      | processed/2020-09-13_2020_p136_vh_db.tif                | GeoTIFF Raster       |    4273.5 | Processed Analysis | Verified & Suitable    |
+| 2020-09-13_2020_p136_vv_db.tif      | processed/2020-09-13_2020_p136_vv_db.tif                | GeoTIFF Raster       |    4434.7 | Processed Analysis | Verified & Suitable    |
+| 2023-08-29_2023_p136_vh_db.tif      | processed/2023-08-29_2023_p136_vh_db.tif                | GeoTIFF Raster       |    4239.3 | Processed Analysis | Verified & Suitable    |
+| 2023-08-29_2023_p136_vv_db.tif      | processed/2023-08-29_2023_p136_vv_db.tif                | GeoTIFF Raster       |    4402.1 | Processed Analysis | Verified & Suitable    |
+| 2024-09-16_2024_p136_vh_db.tif      | processed/2024-09-16_2024_p136_vh_db.tif                | GeoTIFF Raster       |    4257.8 | Processed Analysis | Verified & Suitable    |
+| 2024-09-16_2024_p136_vv_db.tif      | processed/2024-09-16_2024_p136_vv_db.tif                | GeoTIFF Raster       |    4423.7 | Processed Analysis | Verified & Suitable    |
+| copernicus_dem_utm43n_corrected.tif | processed/copernicus_dem_utm43n_corrected.tif           | GeoTIFF Raster       |     439.2 | Processed Analysis | Verified & Suitable    |
+| dem_aspect_deg_corrected.tif        | processed/dem_aspect_deg_corrected.tif                  | GeoTIFF Raster       |     490.8 | Processed Analysis | Verified & Suitable    |
+| dem_hillshade_corrected.tif         | processed/dem_hillshade_corrected.tif                   | GeoTIFF Raster       |     481.1 | Processed Analysis | Verified & Suitable    |
+| dem_slope_deg_corrected.tif         | processed/dem_slope_deg_corrected.tif                   | GeoTIFF Raster       |     484.7 | Processed Analysis | Verified & Suitable    |
+| diff_2023_minus_2017_vv_db.tif      | processed/diff_2023_minus_2017_vv_db.tif                | GeoTIFF Raster       |    4561.8 | Processed Analysis | Verified & Suitable    |
+| diff_2024_minus_2017_vv_db.tif      | processed/diff_2024_minus_2017_vv_db.tif                | GeoTIFF Raster       |    4557.9 | Processed Analysis | Verified & Suitable    |
+| gya_lake_2017.geojson               | processed/segmentation/gya_lake_2017.geojson            | Vector Geospatial    |       8   | Processed Analysis | Verified & Suitable    |
+| gya_lake_2020.geojson               | processed/segmentation/gya_lake_2020.geojson            | Vector Geospatial    |       7.5 | Processed Analysis | Verified & Suitable    |
+| gya_lake_2023.geojson               | processed/segmentation/gya_lake_2023.geojson            | Vector Geospatial    |      10.3 | Processed Analysis | Verified & Suitable    |
+| gya_lake_2024.geojson               | processed/segmentation/gya_lake_2024.geojson            | Vector Geospatial    |       7.2 | Processed Analysis | Verified & Suitable    |
+| gya_lake_mask_2017.tif              | processed/segmentation/gya_lake_mask_2017.tif           | GeoTIFF Raster       |      19.1 | Processed Analysis | Verified & Suitable    |
+| gya_lake_mask_2020.tif              | processed/segmentation/gya_lake_mask_2020.tif           | GeoTIFF Raster       |      19.2 | Processed Analysis | Verified & Suitable    |
+| gya_lake_mask_2023.tif              | processed/segmentation/gya_lake_mask_2023.tif           | GeoTIFF Raster       |      19.2 | Processed Analysis | Verified & Suitable    |
+| gya_lake_mask_2024.tif              | processed/segmentation/gya_lake_mask_2024.tif           | GeoTIFF Raster       |      19.2 | Processed Analysis | Verified & Suitable    |
+| gya_lake_segmentation.gpkg          | processed/segmentation/gya_lake_segmentation.gpkg       | Vector Geospatial    |     156   | Processed Analysis | Verified & Suitable    |
+| gya_physical_measurements.csv       | processed/segmentation/gya_physical_measurements.csv    | Tabular Data         |       0.9 | Processed Analysis | Verified & Suitable    |
+| gya_segmentation_sensitivity.csv    | processed/segmentation/gya_segmentation_sensitivity.csv | Tabular Data         |       0.2 | Processed Analysis | Verified & Suitable    |
+| 2017-09-05_2017_p136_vh_raw.tif     | raw/2017-09-05_2017_p136_vh_raw.tif                     | GeoTIFF Raster       |    4560.9 | Raw Acquired       | Verified & Suitable    |
+| 2017-09-05_2017_p136_vv_raw.tif     | raw/2017-09-05_2017_p136_vv_raw.tif                     | GeoTIFF Raster       |    4522.4 | Raw Acquired       | Verified & Suitable    |
+| 2020-09-13_2020_p136_vh_raw.tif     | raw/2020-09-13_2020_p136_vh_raw.tif                     | GeoTIFF Raster       |    4558.2 | Raw Acquired       | Verified & Suitable    |
+| 2020-09-13_2020_p136_vv_raw.tif     | raw/2020-09-13_2020_p136_vv_raw.tif                     | GeoTIFF Raster       |    4519.4 | Raw Acquired       | Verified & Suitable    |
+| 2023-08-29_2023_p136_vh_raw.tif     | raw/2023-08-29_2023_p136_vh_raw.tif                     | GeoTIFF Raster       |    4550.4 | Raw Acquired       | Verified & Suitable    |
+| 2023-08-29_2023_p136_vv_raw.tif     | raw/2023-08-29_2023_p136_vv_raw.tif                     | GeoTIFF Raster       |    4514.7 | Raw Acquired       | Verified & Suitable    |
+| 2024-09-16_2024_p136_vh_raw.tif     | raw/2024-09-16_2024_p136_vh_raw.tif                     | GeoTIFF Raster       |    4561.4 | Raw Acquired       | Verified & Suitable    |
+| 2024-09-16_2024_p136_vv_raw.tif     | raw/2024-09-16_2024_p136_vv_raw.tif                     | GeoTIFF Raster       |    4525.2 | Raw Acquired       | Verified & Suitable    |

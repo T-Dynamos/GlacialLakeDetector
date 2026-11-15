@@ -18,11 +18,23 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.card import MDCard
 from kivymd.uix.divider import MDDivider
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.slider import MDSlider
+
+from glof_watch.ui.theme import (
+    apply_button_style,
+    apply_card_style,
+    COLOR_TEXT_PRIMARY,
+    COLOR_TEXT_CYAN,
+    COLOR_TEXT_SECONDARY,
+    COLOR_TEXT_MUTED,
+    COLOR_HAZARD_HIGH,
+    COLOR_HAZARD_MOD,
+    COLOR_HAZARD_LOW,
+)
 
 from glof_watch.ui.inventory import (
     HIMALAYAN_GLACIAL_LAKE_INVENTORY,
@@ -134,41 +146,53 @@ class SearchScreen(MDScreen):
         title_label = MDLabel(
             text="Glacial Lake Inventory & Verification",
             theme_text_color="Custom",
-            text_color=(0.1, 0.4, 0.7, 1.0),
+            text_color=COLOR_TEXT_PRIMARY,
             bold=True,
-            font_size="20sp",
-            size_hint_y=None,
-            height=dp(28)
+            font_style="Title",
+            role="large",
+            adaptive_height=True,
         )
         stats = get_inventory_statistics()
         sub_label = MDLabel(
             text=f"Benchmark Catalog: {stats['total_lakes']} Lakes | {stats['historical_glof_count']} Outburst Breach Sites | {stats['critical_hazard_count']} Critical Hazard",
             theme_text_color="Custom",
-            text_color=(0.4, 0.4, 0.4, 1.0),
-            font_size="12sp",
-            size_hint_y=None,
-            height=dp(22)
+            text_color=COLOR_TEXT_CYAN,
+            font_style="Label",
+            role="medium",
+            adaptive_height=True,
         )
         header_box.add_widget(title_label)
         header_box.add_widget(sub_label)
         root.add_widget(header_box)
 
-        # 2. Tab Navigation Switcher
+        # 2. Tab Navigation Switcher (Dual Full-Width Professional Cockpit Pills)
         tabs_box = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
-            height=dp(40),
-            spacing=dp(8)
+            height=dp(44),
+            spacing=dp(12)
         )
-        self.btn_tab_catalog = MDButton(style="filled", size_hint_x=0.5)
         self.btn_tab_catalog_text = MDButtonText(text="Lake Catalog & Radius Search")
-        self.btn_tab_catalog.add_widget(self.btn_tab_catalog_text)
+        self.btn_tab_catalog = MDButton(
+            MDButtonIcon(icon="database-search"),
+            self.btn_tab_catalog_text,
+            theme_width="Custom",
+            size_hint_x=0.5,
+            height=dp(42)
+        )
         self.btn_tab_catalog.bind(on_release=lambda *_: self.switch_tab("catalog"))
 
-        self.btn_tab_verify = MDButton(style="outlined", size_hint_x=0.5)
-        self.btn_tab_verify_text = MDButtonText(text="Verify Against Detection")
-        self.btn_tab_verify.add_widget(self.btn_tab_verify_text)
+        self.btn_tab_verify_text = MDButtonText(text="Ground-Truth Verification Engine")
+        self.btn_tab_verify = MDButton(
+            MDButtonIcon(icon="check-decagram-outline"),
+            self.btn_tab_verify_text,
+            theme_width="Custom",
+            size_hint_x=0.5,
+            height=dp(42)
+        )
         self.btn_tab_verify.bind(on_release=lambda *_: self.switch_tab("verification"))
+        apply_button_style(self.btn_tab_catalog, "active")
+        apply_button_style(self.btn_tab_verify, "inactive")
 
         tabs_box.add_widget(self.btn_tab_catalog)
         tabs_box.add_widget(self.btn_tab_verify)
@@ -201,13 +225,14 @@ class SearchScreen(MDScreen):
 
         # Search Controls Card
         search_card = MDCard(
-            style="outlined",
             orientation="vertical",
-            padding=dp(12),
+            pos_hint={"top": 1.0},
+            padding=[dp(14), dp(10), dp(14), dp(10)],
             spacing=dp(8),
             size_hint_y=None,
-            height=dp(140)
+            height=dp(156)
         )
+        apply_card_style(search_card)
 
         # Row 1: Search bar text input + Action Buttons
         input_row = MDBoxLayout(
@@ -218,19 +243,31 @@ class SearchScreen(MDScreen):
         )
         self.search_input = MDTextField(
             mode="outlined",
-            size_hint_x=0.72
+            size_hint_x=0.68
         )
         self.search_input.add_widget(
             MDTextFieldHintText(text="Enter coordinates (e.g. 33.62, 77.61) or lake name (e.g. Gya, Kyagar)...")
         )
         self.search_input.bind(on_text_validate=lambda *_: self.execute_search())
 
-        btn_search = MDButton(style="filled", size_hint_x=0.15)
-        btn_search.add_widget(MDButtonText(text="Search"))
+        btn_search = MDButton(
+            MDButtonIcon(icon="magnify"),
+            MDButtonText(text="Search"),
+            theme_width="Custom",
+            size_hint_x=0.18,
+            height=dp(42)
+        )
+        apply_button_style(btn_search, "action")
         btn_search.bind(on_release=lambda *_: self.execute_search())
 
-        btn_reset = MDButton(style="outlined", size_hint_x=0.13)
-        btn_reset.add_widget(MDButtonText(text="Reset"))
+        btn_reset = MDButton(
+            MDButtonIcon(icon="restore"),
+            MDButtonText(text="Reset"),
+            theme_width="Custom",
+            size_hint_x=0.14,
+            height=dp(42)
+        )
+        apply_button_style(btn_reset, "secondary")
         btn_reset.bind(on_release=lambda *_: self.reset_search())
 
         input_row.add_widget(self.search_input)
@@ -249,7 +286,7 @@ class SearchScreen(MDScreen):
             text="Search Radius: 50 km",
             size_hint_x=0.30,
             theme_text_color="Custom",
-            text_color=(0.2, 0.2, 0.2, 1.0),
+            text_color=COLOR_TEXT_CYAN,
             font_size="13sp",
             bold=True
         )
@@ -281,8 +318,13 @@ class SearchScreen(MDScreen):
             ("Karakoram", "Karakoram"),
         ]
         for label_text, filter_kw in quick_filters:
-            btn = MDButton(style="text", size_hint_x=1.0 / len(quick_filters))
-            btn.add_widget(MDButtonText(text=label_text, font_size="10sp"))
+            btn = MDButton(
+                MDButtonText(text=label_text, font_size="10sp"),
+                theme_width="Custom",
+                size_hint_x=1.0 / len(quick_filters),
+                height=dp(28)
+            )
+            apply_button_style(btn, "secondary")
             btn.bind(on_release=lambda *_, kw=filter_kw: self.apply_quick_filter(kw))
             filter_row.add_widget(btn)
 
@@ -291,9 +333,9 @@ class SearchScreen(MDScreen):
 
         # Results Summary Banner
         self.status_banner = MDLabel(
-            text="Displaying all 18 catalogued benchmark lakes across Trans-Himalaya and Karakoram",
+            text="Displaying all benchmark lakes across Trans-Himalaya and Karakoram",
             theme_text_color="Custom",
-            text_color=(0.2, 0.5, 0.2, 1.0),
+            text_color=COLOR_TEXT_SECONDARY,
             font_size="12sp",
             bold=True,
             size_hint_y=None,
@@ -323,23 +365,30 @@ class SearchScreen(MDScreen):
 
         # Source Detection Bar
         det_bar = MDCard(
-            style="outlined",
             orientation="horizontal",
-            padding=dp(12),
+            padding=[dp(16), dp(8), dp(16), dp(8)],
             spacing=dp(10),
             size_hint_y=None,
             height=dp(54)
         )
+        apply_card_style(det_bar)
+
         self.det_status_label = MDLabel(
             text="Source Detection: detected_lakes.geojson (1 candidate detected)",
             theme_text_color="Custom",
-            text_color=(0.1, 0.3, 0.6, 1.0),
+            text_color=COLOR_TEXT_CYAN,
             font_size="13sp",
             bold=True,
-            size_hint_x=0.65
+            size_hint_x=0.68
         )
-        btn_reload_det = MDButton(style="filled", size_hint_x=0.35)
-        btn_reload_det.add_widget(MDButtonText(text="Run Cross-Check"))
+        btn_reload_det = MDButton(
+            MDButtonIcon(icon="database-sync"),
+            MDButtonText(text="Run Cross-Check"),
+            theme_width="Custom",
+            size_hint_x=0.32,
+            height=dp(38)
+        )
+        apply_button_style(btn_reload_det, "action")
         btn_reload_det.bind(on_release=lambda *_: self.run_verification_on_loaded())
         det_bar.add_widget(self.det_status_label)
         det_bar.add_widget(btn_reload_det)
@@ -363,12 +412,12 @@ class SearchScreen(MDScreen):
         self.content_container.clear_widgets()
 
         if tab_name == "catalog":
-            self.btn_tab_catalog.style = "filled"
-            self.btn_tab_verify.style = "outlined"
+            apply_button_style(self.btn_tab_catalog, "active")
+            apply_button_style(self.btn_tab_verify, "inactive")
             self.content_container.add_widget(self.catalog_view)
         else:
-            self.btn_tab_catalog.style = "outlined"
-            self.btn_tab_verify.style = "filled"
+            apply_button_style(self.btn_tab_catalog, "inactive")
+            apply_button_style(self.btn_tab_verify, "active")
             self.content_container.add_widget(self.verification_view)
             if self.latest_telemetry is None:
                 self.run_verification_on_loaded()
@@ -437,16 +486,16 @@ class SearchScreen(MDScreen):
 
         if not lakes:
             empty_card = MDCard(
-                style="outlined",
                 padding=dp(16),
                 size_hint_y=None,
                 height=dp(80)
             )
+            apply_card_style(empty_card)
             empty_card.add_widget(
                 MDLabel(
                     text="No glacial lakes found matching the criteria. Try broadening the search radius.",
                     theme_text_color="Custom",
-                    text_color=(0.5, 0.5, 0.5, 1.0),
+                    text_color=COLOR_TEXT_SECONDARY,
                     font_size="13sp"
                 )
             )
@@ -461,22 +510,22 @@ class SearchScreen(MDScreen):
         """Constructs an interactive card widget for an individual glacial lake."""
         hazard = lake.get("hazard_level", "LOW")
         if hazard == "CRITICAL":
-            hazard_color = (0.85, 0.15, 0.15, 1.0)
+            hazard_color = COLOR_HAZARD_HIGH
         elif hazard == "HIGH":
-            hazard_color = (0.95, 0.45, 0.10, 1.0)
+            hazard_color = COLOR_HAZARD_HIGH
         elif hazard == "MODERATE":
-            hazard_color = (0.85, 0.65, 0.10, 1.0)
+            hazard_color = COLOR_HAZARD_MOD
         else:
-            hazard_color = (0.20, 0.65, 0.25, 1.0)
+            hazard_color = COLOR_HAZARD_LOW
 
         card = MDCard(
-            style="outlined",
             orientation="vertical",
-            padding=dp(12),
-            spacing=dp(6),
+            padding=[dp(14), dp(10), dp(14), dp(10)],
+            spacing=dp(5),
             size_hint_y=None,
-            height=dp(168)
+            height=dp(174)
         )
+        apply_card_style(card)
 
         # Header Row: Lake Name + Hazard Badge
         hdr_row = MDBoxLayout(
@@ -491,7 +540,7 @@ class SearchScreen(MDScreen):
             font_size="15sp",
             size_hint_x=0.68,
             theme_text_color="Custom",
-            text_color=(0.1, 0.15, 0.25, 1.0)
+            text_color=COLOR_TEXT_PRIMARY
         )
         glof_badge = " [HISTORICAL GLOF]" if lake.get("historical_glof") else ""
         badge_lbl = MDLabel(
@@ -512,7 +561,7 @@ class SearchScreen(MDScreen):
             text=f"Basin: {lake['basin']} | Type: {lake['lake_type']}",
             font_size="11sp",
             theme_text_color="Custom",
-            text_color=(0.35, 0.35, 0.35, 1.0),
+            text_color=COLOR_TEXT_MUTED,
             size_hint_y=None,
             height=dp(18)
         )
@@ -531,7 +580,7 @@ class SearchScreen(MDScreen):
             font_size="11sp",
             bold=True,
             theme_text_color="Custom",
-            text_color=(0.15, 0.35, 0.55, 1.0),
+            text_color=COLOR_TEXT_CYAN,
             size_hint_y=None,
             height=dp(18)
         )
@@ -543,7 +592,7 @@ class SearchScreen(MDScreen):
             text=desc_text[:140] + ("..." if len(desc_text) > 140 else ""),
             font_size="11sp",
             theme_text_color="Custom",
-            text_color=(0.4, 0.4, 0.4, 1.0),
+            text_color=COLOR_TEXT_SECONDARY,
             size_hint_y=None,
             height=dp(32)
         )
@@ -552,16 +601,28 @@ class SearchScreen(MDScreen):
         # Action Buttons Row
         action_row = MDBoxLayout(
             orientation="horizontal",
-            spacing=dp(8),
+            spacing=dp(10),
             size_hint_y=None,
+            height=dp(36)
+        )
+        btn_map = MDButton(
+            MDButtonIcon(icon="crosshairs-gps"),
+            MDButtonText(text="Inspect on Map", font_size="11sp"),
+            theme_width="Custom",
+            size_hint_x=0.5,
             height=dp(34)
         )
-        btn_map = MDButton(style="filled", size_hint_x=0.5)
-        btn_map.add_widget(MDButtonText(text="Inspect on Map", font_size="11sp"))
+        apply_button_style(btn_map, "action")
         btn_map.bind(on_release=lambda *_, lk=lake: self.inspect_on_map(lk))
 
-        btn_verify = MDButton(style="outlined", size_hint_x=0.5)
-        btn_verify.add_widget(MDButtonText(text="Cross-Check Lake", font_size="11sp"))
+        btn_verify = MDButton(
+            MDButtonIcon(icon="check-decagram-outline"),
+            MDButtonText(text="Cross-Check Lake", font_size="11sp"),
+            theme_width="Custom",
+            size_hint_x=0.5,
+            height=dp(34)
+        )
+        apply_button_style(btn_verify, "secondary")
         btn_verify.bind(on_release=lambda *_, lk=lake: self.cross_check_specific_lake(lk))
 
         action_row.add_widget(btn_map)
@@ -660,23 +721,24 @@ class SearchScreen(MDScreen):
 
         # Badge color mapping
         if badge_code == "HISTORICAL_OUTBURST_REMNANT":
-            badge_bg = (0.85, 0.15, 0.15, 1.0)
+            badge_bg = COLOR_HAZARD_HIGH
         elif badge_code == "EXPANDED_LAKE":
-            badge_bg = (0.95, 0.55, 0.10, 1.0)
+            badge_bg = COLOR_HAZARD_MOD
         elif badge_code == "NEW_UNRECORDED_LAKE":
-            badge_bg = (0.60, 0.20, 0.70, 1.0)
+            badge_bg = [0.80, 0.40, 1.0, 1.0]
         else:
-            badge_bg = (0.20, 0.65, 0.25, 1.0)
+            badge_bg = COLOR_HAZARD_LOW
 
         # 1. Primary Verification Result Card
         result_card = MDCard(
-            style="outlined",
             orientation="vertical",
-            padding=dp(16),
-            spacing=dp(10),
+            padding=[dp(16), dp(12), dp(16), dp(12)],
+            spacing=dp(6),
             size_hint_y=None,
             height=dp(130)
         )
+        apply_card_style(result_card)
+
         badge_label = MDLabel(
             text=f"STATUS: {badge}",
             bold=True,
@@ -691,6 +753,8 @@ class SearchScreen(MDScreen):
             text=f"Matched Benchmark: {matched_lake_name} (Catalog ID: {telem.get('lake_id')})",
             bold=True,
             font_size="14sp",
+            theme_text_color="Custom",
+            text_color=COLOR_TEXT_PRIMARY,
             size_hint_y=None,
             height=dp(22)
         )
@@ -698,7 +762,7 @@ class SearchScreen(MDScreen):
             text=f"Algorithmic Verification Confidence Score: {confidence * 100:.1f}% | Geodesic Spatial Match: {'YES' if telem.get('is_match') else 'NO'}",
             font_size="12sp",
             theme_text_color="Custom",
-            text_color=(0.3, 0.3, 0.3, 1.0),
+            text_color=COLOR_TEXT_CYAN,
             size_hint_y=None,
             height=dp(20)
         )
@@ -709,17 +773,20 @@ class SearchScreen(MDScreen):
 
         # 2. Detailed Metric Comparison Grid Card
         metric_card = MDCard(
-            style="outlined",
             orientation="vertical",
-            padding=dp(16),
-            spacing=dp(8),
+            padding=[dp(16), dp(12), dp(16), dp(12)],
+            spacing=dp(6),
             size_hint_y=None,
             height=dp(160)
         )
+        apply_card_style(metric_card)
+
         metric_title = MDLabel(
             text="Spatial Geodesic & Hydrodynamic Metrics",
             bold=True,
             font_size="14sp",
+            theme_text_color="Custom",
+            text_color=COLOR_TEXT_PRIMARY,
             size_hint_y=None,
             height=dp(22)
         )
@@ -732,6 +799,8 @@ class SearchScreen(MDScreen):
         m1 = MDLabel(
             text=f"Centroid Offset: {offset_km:.3f} km | Detected: ({det_centroid[0]:.4f}N, {det_centroid[1]:.4f}E) vs Catalog: ({hist_centroid[0]:.4f}N, {hist_centroid[1]:.4f}E)",
             font_size="12sp",
+            theme_text_color="Custom",
+            text_color=COLOR_TEXT_SECONDARY,
             size_hint_y=None,
             height=dp(20)
         )
@@ -743,13 +812,15 @@ class SearchScreen(MDScreen):
             font_size="12sp",
             bold=True,
             theme_text_color="Custom",
-            text_color=(0.8, 0.3, 0.1, 1.0) if abs(area_diff_pct) > 25 else (0.2, 0.5, 0.2, 1.0),
+            text_color=COLOR_HAZARD_HIGH if abs(area_diff_pct) > 25 else COLOR_HAZARD_LOW,
             size_hint_y=None,
             height=dp(20)
         )
         m3 = MDLabel(
             text=f"Hazard Classification: Detected '{telem.get('detected_risk_level')}' vs Catalog Baseline '{telem.get('historical_hazard_level')}'",
             font_size="12sp",
+            theme_text_color="Custom",
+            text_color=COLOR_TEXT_SECONDARY,
             size_hint_y=None,
             height=dp(20)
         )
@@ -760,17 +831,20 @@ class SearchScreen(MDScreen):
 
         # 3. Historical Glaciological Notes & Outburst Context
         notes_card = MDCard(
-            style="outlined",
             orientation="vertical",
-            padding=dp(16),
-            spacing=dp(8),
+            padding=[dp(16), dp(12), dp(16), dp(12)],
+            spacing=dp(6),
             size_hint_y=None,
             height=dp(180)
         )
+        apply_card_style(notes_card)
+
         notes_title = MDLabel(
             text="Historical Outburst Context & Breach Chronology",
             bold=True,
             font_size="14sp",
+            theme_text_color="Custom",
+            text_color=COLOR_TEXT_PRIMARY,
             size_hint_y=None,
             height=dp(22)
         )
@@ -782,7 +856,7 @@ class SearchScreen(MDScreen):
             text=notes_body,
             font_size="12sp",
             theme_text_color="Custom",
-            text_color=(0.25, 0.25, 0.25, 1.0),
+            text_color=COLOR_TEXT_SECONDARY,
             size_hint_y=None,
             height=dp(50)
         )
@@ -791,7 +865,7 @@ class SearchScreen(MDScreen):
             bold=True,
             font_size="12sp",
             theme_text_color="Custom",
-            text_color=(0.1, 0.3, 0.6, 1.0),
+            text_color=COLOR_TEXT_CYAN,
             size_hint_y=None,
             height=dp(18)
         )
@@ -799,7 +873,7 @@ class SearchScreen(MDScreen):
             text=telem.get("recommendation", "Continue routine orbital monitoring."),
             font_size="12sp",
             theme_text_color="Custom",
-            text_color=(0.3, 0.3, 0.3, 1.0),
+            text_color=COLOR_TEXT_PRIMARY,
             size_hint_y=None,
             height=dp(36)
         )
@@ -810,13 +884,22 @@ class SearchScreen(MDScreen):
 
         # 4. Action Button Card
         action_card = MDCard(
-            style="outlined",
             padding=dp(8),
             size_hint_y=None,
-            height=dp(48)
+            height=dp(52)
         )
-        btn_inspect = MDButton(style="filled", size_hint_x=1.0)
-        btn_inspect.add_widget(MDButtonText(text=f"Inspect {matched_lake_name} on Map"))
+        apply_card_style(action_card)
+
+        btn_inspect = MDButton(
+            MDButtonIcon(icon="crosshairs-gps"),
+            MDButtonText(text=f"Inspect {matched_lake_name} on Map"),
+            theme_width="Custom",
+            size_hint_x=1.0,
+            height=dp(38)
+        )
+        apply_button_style(btn_inspect, "action")
+        btn_inspect.bind(on_release=lambda *_: self.inspect_on_map(closest_lake))
+        apply_button_style(btn_inspect, "action")
         btn_inspect.bind(on_release=lambda *_: self.inspect_on_map(closest_lake))
         action_card.add_widget(btn_inspect)
         self.telemetry_container.add_widget(action_card)

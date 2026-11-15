@@ -42,6 +42,7 @@ from glof_watch.ui.mapview_compat import (
     Coordinate,
 )
 from glof_watch.config import load_targets
+from glof_watch.ui.theme import apply_button_style, apply_icon_button_style, apply_card_style
 
 # Ensure compatibility shim is active
 ensure_mapview_compat()
@@ -270,11 +271,12 @@ class MapScreen(MDScreen):
 
         # 5. Analyze Action Button (Bottom-Right)
         self.analyze_button = MDButton(
+            MDButtonIcon(icon="radar"),
             MDButtonText(text="ANALYZE SELECTED AOI"),
-            style="filled",
             pos_hint={"right": 0.98, "y": 0.03},
             size_hint=(None, None),
         )
+        apply_button_style(self.analyze_button, "action")
         self.analyze_button.bind(on_release=lambda *a: self.on_analyze_pressed())
         root_layout.add_widget(self.analyze_button)
 
@@ -286,12 +288,13 @@ class MapScreen(MDScreen):
     def _create_hud_card(self) -> MDCard:
         """Creates the floating telemetry and scale HUD card at the top with Target Dropdown."""
         card = MDCard(
-            style="elevated",
+            style="outlined",
             pos_hint={"top": 0.98, "center_x": 0.5},
             size_hint=(0.96, None),
-            height=dp(58),
-            padding=[dp(16), dp(6), dp(16), dp(6)],
+            height=dp(52),
+            padding=[dp(14), dp(4), dp(14), dp(4)],
         )
+        apply_card_style(card)
 
         hud_box = MDBoxLayout(
             orientation="horizontal",
@@ -300,26 +303,21 @@ class MapScreen(MDScreen):
             pos_hint={"center_y": 0.5},
         )
 
-        self.hud_title_label = MDLabel(
-            text="GLOF-WATCH",
-            font_style="Title",
-            role="medium",
-            adaptive_size=True,
-        )
+        self.hud_title_label = None
 
         # Dropdown button for Target selection
         t_name = self.current_target_info.get('name', 'Gya Glacial Lake') if self.current_target_info else 'Select Target'
-        self.btn_target_text = MDButtonText(text=f"Target: {t_name}")
+        self.btn_target_text = MDButtonText(text=f"AOI: {t_name}")
         self.hud_target_label = self.btn_target_text
         self.btn_target_dropdown = MDButton(
             MDButtonIcon(icon="target"),
             self.btn_target_text,
             MDButtonIcon(icon="menu-down"),
-            style="tonal",
             size_hint=(None, None),
             height=dp(36),
             on_release=self.open_target_menu
         )
+        apply_button_style(self.btn_target_dropdown, "secondary")
 
         # Toggle button for Map Layer (Satellite vs Street)
         self.btn_layer_text = MDButtonText(text="Satellite (Active)")
@@ -327,11 +325,11 @@ class MapScreen(MDScreen):
         self.btn_layer_toggle = MDButton(
             self.btn_layer_icon,
             self.btn_layer_text,
-            style="outlined",
             size_hint=(None, None),
             height=dp(36),
             on_release=self.toggle_map_layer
         )
+        apply_button_style(self.btn_layer_toggle, "secondary")
 
         self.hud_coords_label = MDLabel(
             text="[color=#90a4ae]CENTER:[/color] [b]34.2000° N, 77.6000° E[/b]",
@@ -349,7 +347,6 @@ class MapScreen(MDScreen):
             adaptive_size=True,
         )
 
-        hud_box.add_widget(self.hud_title_label)
         hud_box.add_widget(self.btn_target_dropdown)
         hud_box.add_widget(self.btn_layer_toggle)
         hud_box.add_widget(self.hud_coords_label)
@@ -368,6 +365,7 @@ class MapScreen(MDScreen):
             self.map_view.map_source = SATELLITE_MAP_SOURCE
             self.btn_layer_text.text = "Satellite (Active)"
             self.btn_layer_icon.icon = "satellite-variant"
+        apply_button_style(self.btn_layer_toggle, "secondary")
 
     def _create_target_menu(self):
         """Builds MDDropdownMenu with categorized Focused Lakes & Regional Corridors."""
@@ -452,13 +450,14 @@ class MapScreen(MDScreen):
     def _create_bbox_control_card(self) -> MDCard:
         """Creates the bottom-left telemetry and interactive nudge control card with grid layout and icon font."""
         card = MDCard(
-            style="elevated",
+            style="outlined",
             pos_hint={"x": 0.02, "y": 0.03},
             size_hint=(None, None),
             width=dp(420),
-            height=dp(170),
+            height=dp(148),
             padding=[dp(16), dp(10), dp(16), dp(10)],
         )
+        apply_card_style(card)
 
         container = MDBoxLayout(
             orientation="vertical",
@@ -496,53 +495,38 @@ class MapScreen(MDScreen):
         container.add_widget(self.bbox_extent_label)
 
         # -------------------------------------------------------------
-        # Interactive Nudge Controls using MDGridLayout & Icon Font
+        # Interactive Nudge Controls: Clean horizontal bar fitting 100% inside card
         # -------------------------------------------------------------
-        nudge_grid = MDGridLayout(
-            cols=7,
-            spacing=[dp(6), dp(2)],
+        nudge_row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(5),
             size_hint=(1, None),
-            height=dp(54),
+            height=dp(32),
             pos_hint={"center_x": 0.5}
         )
 
         nudge_actions = [
-            ("arrow-up", "tonal", "N", lambda: self.nudge_bbox("north")),
-            ("arrow-down", "tonal", "S", lambda: self.nudge_bbox("south")),
-            ("arrow-left", "tonal", "W", lambda: self.nudge_bbox("west")),
-            ("arrow-right", "tonal", "E", lambda: self.nudge_bbox("east")),
-            ("plus", "outlined", "+Size", lambda: self.resize_bbox(0.005)),
-            ("minus", "outlined", "-Size", lambda: self.resize_bbox(-0.005)),
-            ("restore", "outlined", "Reset", self.reset_bbox_to_preset),
+            ("N", lambda: self.nudge_bbox("north")),
+            ("S", lambda: self.nudge_bbox("south")),
+            ("W", lambda: self.nudge_bbox("west")),
+            ("E", lambda: self.nudge_bbox("east")),
+            ("+Size", lambda: self.resize_bbox(0.005)),
+            ("-Size", lambda: self.resize_bbox(-0.005)),
+            ("Reset", self.reset_bbox_to_preset),
         ]
 
-        # Row 1: Icon buttons from icon font
-        for icon_name, btn_style, label_text, func in nudge_actions:
-            btn = MDIconButton(
-                icon=icon_name,
-                style=btn_style,
-                size_hint=(None, None),
-                size=(dp(36), dp(36)),
-                pos_hint={"center_x": 0.5}
+        for label_text, func in nudge_actions:
+            btn = MDButton(
+                MDButtonText(text=f"[b]{label_text}[/b]", font_size="11sp"),
+                theme_width="Custom",
+                size_hint_x=1.0 / len(nudge_actions),
+                height=dp(32)
             )
+            apply_button_style(btn, "secondary")
             btn.bind(on_release=lambda *a, f=func: f())
-            nudge_grid.add_widget(btn)
+            nudge_row.add_widget(btn)
 
-        # Row 2: Micro-labels underneath each icon button
-        for icon_name, btn_style, label_text, func in nudge_actions:
-            lbl = MDLabel(
-                text=f"[color=#90a4ae]{label_text}[/color]",
-                markup=True,
-                font_style="Label",
-                role="small",
-                halign="center",
-                adaptive_height=True,
-                size_hint_x=None,
-                width=dp(36)
-            )
-            nudge_grid.add_widget(lbl)
-
-        container.add_widget(nudge_grid)
+        container.add_widget(nudge_row)
         card.add_widget(container)
         return card
 
@@ -696,12 +680,12 @@ class MapScreen(MDScreen):
         if len(b) == 4:
             self.bbox_coords_label.text = (
                 f"[color=#80cbc4][b]{b[0]:.4f}° E, {b[1]:.4f}° N[/b][/color]  "
-                f"[color=#546e7a]→[/color]  "
+                f"[color=#00e5ff]->[/color]  "
                 f"[color=#80cbc4][b]{b[2]:.4f}° E, {b[3]:.4f}° N[/b][/color]"
             )
             w_km, h_km, area_km2 = calculate_bbox_dimensions_km(b)
             self.bbox_extent_label.text = (
-                f"[color=#b0bec5]Footprint:[/color] [b]{w_km:.2f} km × {h_km:.2f} km[/b]  "
+                f"[color=#b0bec5]Footprint:[/color] [b]{w_km:.2f} km x {h_km:.2f} km[/b]  "
                 f"[color=#546e7a]|[/color]  "
                 f"[color=#b0bec5]Area:[/color] [b][color=#26a69a]{area_km2:.1f} km²[/color][/b]"
             )

@@ -28,6 +28,7 @@ from kivymd.uix.progressindicator import MDLinearProgressIndicator
 
 from glof_watch.pipeline import run_detection_for_bbox
 from glof_watch.ui.vispy_3d import render_3d_terrain_rgba, launch_interactive_vispy_window
+from glof_watch.ui.theme import apply_button_style
 
 
 class AnalysisScreen(MDScreen):
@@ -178,27 +179,27 @@ class AnalysisScreen(MDScreen):
         self.btn_view_sat = MDButton(
             MDButtonIcon(icon="satellite-variant"),
             MDButtonText(text="Satellite Shoreline"),
-            style="filled",
             on_release=lambda *args: self.switch_view_mode("sat")
         )
         self.btn_view_2d = MDButton(
             MDButtonIcon(icon="image-outline"),
             MDButtonText(text="2D Diagnostic"),
-            style="tonal",
             on_release=lambda *args: self.switch_view_mode("2d")
         )
         self.btn_view_3d = MDButton(
             MDButtonIcon(icon="cube-outline"),
             MDButtonText(text="3D Relief Hub"),
-            style="tonal",
             on_release=lambda *args: self.switch_view_mode("3d")
         )
         self.btn_view_orbit = MDButton(
             MDButtonIcon(icon="rotate-3d-variant"),
             MDButtonText(text="Launch 3D Window"),
-            style="filled",
             on_release=lambda *args: self.open_interactive_vispy_window()
         )
+        apply_button_style(self.btn_view_sat, "active")
+        apply_button_style(self.btn_view_2d, "inactive")
+        apply_button_style(self.btn_view_3d, "inactive")
+        apply_button_style(self.btn_view_orbit, "action")
         view_bar.add_widget(self.btn_view_sat)
         view_bar.add_widget(self.btn_view_2d)
         view_bar.add_widget(self.btn_view_3d)
@@ -357,9 +358,9 @@ class AnalysisScreen(MDScreen):
         self.btn_launch_hub = MDButton(
             MDButtonIcon(icon="rotate-3d-variant"),
             MDButtonText(text="Launch Standalone 3D Window"),
-            style="filled",
             on_release=lambda *args: self.open_interactive_vispy_window()
         )
+        apply_button_style(self.btn_launch_hub, "action")
         hub_action_row.add_widget(self.btn_launch_hub)
         self.card_3d_hub.add_widget(hub_action_row)
 
@@ -448,21 +449,21 @@ class AnalysisScreen(MDScreen):
         self.btn_back_map = MDButton(
             MDButtonIcon(icon="arrow-left"),
             MDButtonText(text="Back to Map"),
-            style="outlined",
             on_release=lambda *args: self.action_back_to_map()
         )
         self.btn_export_geojson = MDButton(
             MDButtonIcon(icon="file-download-outline"),
             MDButtonText(text="Export GeoJSON"),
-            style="tonal",
             on_release=lambda *args: self.action_export_geojson()
         )
         self.btn_cross_check = MDButton(
             MDButtonIcon(icon="text-box-search-outline"),
             MDButtonText(text="Cross-Check Lake"),
-            style="filled",
             on_release=lambda *args: self.action_cross_check_lake()
         )
+        apply_button_style(self.btn_back_map, "secondary")
+        apply_button_style(self.btn_export_geojson, "secondary")
+        apply_button_style(self.btn_cross_check, "action")
 
         action_bar.add_widget(self.btn_back_map)
         action_bar.add_widget(self.btn_export_geojson)
@@ -551,7 +552,10 @@ class AnalysisScreen(MDScreen):
 
         # Clear logs and display clean start message
         timestamp = time.strftime("%H:%M:%S")
-        bbox_str = f"[{bbox[0]:.3f}, {bbox[1]:.3f}, {bbox[2]:.3f}, {bbox[3]:.3f}]" if bbox else "Custom AOI"
+        try:
+            bbox_str = f"[{float(bbox[0]):.3f}, {float(bbox[1]):.3f}, {float(bbox[2]):.3f}, {float(bbox[3]):.3f}]" if (bbox and len(bbox) >= 4) else "Custom AOI"
+        except (ValueError, TypeError, IndexError):
+            bbox_str = str(bbox) if bbox else "Custom AOI"
         self.lbl_terminal_log.text = f"[{timestamp}] [SCREEN RESET] Cleared previous mission data.\n[{timestamp}] Preparing satellite radar pipeline for '{target_name}'...\n[{timestamp}] AOI Bounding Box: {bbox_str}"
 
         # Clear visual containers
@@ -721,20 +725,16 @@ class AnalysisScreen(MDScreen):
         self.active_view_mode = mode
         self.view_container.clear_widgets()
 
+        apply_button_style(self.btn_view_sat, "active" if mode == "sat" else "inactive")
+        apply_button_style(self.btn_view_2d, "active" if mode == "2d" else "inactive")
+        apply_button_style(self.btn_view_3d, "active" if mode == "3d" else "inactive")
+        apply_button_style(self.btn_view_orbit, "action")
+
         if mode == "sat":
-            self.btn_view_sat.style = "filled"
-            self.btn_view_2d.style = "tonal"
-            self.btn_view_3d.style = "tonal"
             self.view_container.add_widget(self.scatter_sat)
         elif mode == "2d":
-            self.btn_view_sat.style = "tonal"
-            self.btn_view_2d.style = "filled"
-            self.btn_view_3d.style = "tonal"
             self.view_container.add_widget(self.scatter_2d)
         else:
-            self.btn_view_sat.style = "tonal"
-            self.btn_view_2d.style = "tonal"
-            self.btn_view_3d.style = "filled"
             self._update_3d_telemetry_card()
             self.view_container.add_widget(self.card_3d_hub)
 

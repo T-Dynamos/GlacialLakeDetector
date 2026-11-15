@@ -27,8 +27,15 @@ OUTPUT_DIR = "/home/tdynamos/NASA/screenshots"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-def take_screenshot(filename: str):
+def take_screenshot(filename: str, app_instance=None):
     path = os.path.join(OUTPUT_DIR, filename)
+    try:
+        if app_instance and app_instance.root:
+            app_instance.root.export_to_png(path)
+            print(f"[SCREENSHOT] Exported widget texture to: {path} ({os.path.getsize(path)} bytes)")
+            return path
+    except Exception as e:
+        print(f"[WARN] export_to_png failed: {e}")
     try:
         subprocess.run(["grim", path], check=True, timeout=5)
         print(f"[SCREENSHOT] Successfully captured: {path} ({os.path.getsize(path)} bytes)")
@@ -48,10 +55,10 @@ def run_capture():
         app.map_screen.select_preset("ghepan_gath", animate=False)
 
         def do_capture_map(dt2):
-            take_screenshot("screen1_map_satellite.png")
-            Clock.schedule_once(step_1b_map_dropdown, 0.6)
+            take_screenshot("screen1_map_satellite.png", app)
+            Clock.schedule_once(step_1b_map_dropdown, 0.8)
 
-        Clock.schedule_once(do_capture_map, 1.2)
+        Clock.schedule_once(do_capture_map, 4.0)
 
     # Step 1B: Map Screen with Target Selector Dropdown opened
     def step_1b_map_dropdown(dt):
@@ -59,7 +66,7 @@ def run_capture():
         app.map_screen.open_target_menu()
 
         def do_capture_dropdown(dt2):
-            take_screenshot("screen1_map_dropdown.png")
+            take_screenshot("screen1_map_dropdown.png", app)
             # Dismiss menu
             if app.map_screen.target_menu:
                 app.map_screen.target_menu.dismiss()
@@ -70,7 +77,7 @@ def run_capture():
     # Step 2A: Analysis Screen - Satellite Shoreline Mode
     def step_2a_analysis_satellite(dt):
         print("\n=== STEP 2A: AnalysisScreen (Satellite Shoreline Mode) ===")
-        app.screen_manager.current = "analysis_screen"
+        app.switch_to_analysis(target_info="Ghepan Gath Glacial Lake", auto_start=False)
         analysis = app.analysis_screen
         analysis._load_cached_results_if_present()
 
@@ -82,10 +89,10 @@ def run_capture():
         analysis.switch_view_mode("sat")
 
         def do_capture_sat(dt2):
-            take_screenshot("screen2a_analysis_satellite.png")
-            Clock.schedule_once(step_2b_analysis_diagnostic, 0.6)
+            take_screenshot("screen2a_analysis_satellite.png", app)
+            Clock.schedule_once(step_2b_analysis_diagnostic, 0.8)
 
-        Clock.schedule_once(do_capture_sat, 0.6)
+        Clock.schedule_once(do_capture_sat, 0.8)
 
     # Step 2B: Analysis Screen - 2D Multi-Panel Diagnostic Mode
     def step_2b_analysis_diagnostic(dt):
@@ -98,10 +105,10 @@ def run_capture():
         analysis.switch_view_mode("2d")
 
         def do_capture_2d(dt2):
-            take_screenshot("screen2b_analysis_diagnostic.png")
-            Clock.schedule_once(step_2c_analysis_3d, 0.6)
+            take_screenshot("screen2b_analysis_diagnostic.png", app)
+            Clock.schedule_once(step_2c_analysis_3d, 0.8)
 
-        Clock.schedule_once(do_capture_2d, 0.6)
+        Clock.schedule_once(do_capture_2d, 0.8)
 
     # Step 2C: Analysis Screen - 3D VisPy Terrain Mesh
     def step_2c_analysis_3d(dt):
@@ -111,10 +118,10 @@ def run_capture():
         analysis.switch_view_mode("3d")
 
         def do_capture_3d(dt2):
-            take_screenshot("screen2c_analysis_3d.png")
-            Clock.schedule_once(step_3a_search_catalog, 0.6)
+            take_screenshot("screen2c_analysis_3d.png", app)
+            Clock.schedule_once(step_3a_search_catalog, 0.8)
 
-        Clock.schedule_once(do_capture_3d, 0.6)
+        Clock.schedule_once(do_capture_3d, 0.8)
 
     # Step 3A: Search Screen - Inventory Catalog
     def step_3a_search_catalog(dt):
@@ -124,14 +131,15 @@ def run_capture():
         search.switch_tab("catalog")
 
         def do_capture_catalog(dt2):
-            take_screenshot("screen3a_search_catalog.png")
-            Clock.schedule_once(step_3b_search_verification, 0.6)
+            take_screenshot("screen3a_search_catalog.png", app)
+            Clock.schedule_once(step_3b_search_verification, 0.8)
 
-        Clock.schedule_once(do_capture_catalog, 0.6)
+        Clock.schedule_once(do_capture_catalog, 0.8)
 
     # Step 3B: Search Screen - Ground-Truth Verification
     def step_3b_search_verification(dt):
         print("\n=== STEP 3B: SearchScreen (Ground-Truth Verification) ===")
+        app.switch_to_search()
         search = app.search_screen
         mock_detection = {
             "latitude": 33.6217,
@@ -144,11 +152,11 @@ def run_capture():
         search.switch_tab("verification")
 
         def do_capture_verif(dt2):
-            take_screenshot("screen3b_search_verification.png")
+            take_screenshot("screen3b_search_verification.png", app)
             print("\n[COMPLETE] All 6 UI screen configurations successfully captured!")
-            Clock.schedule_once(lambda dt3: app.stop(), 0.4)
+            Clock.schedule_once(lambda dt3: app.stop(), 0.5)
 
-        Clock.schedule_once(do_capture_verif, 0.6)
+        Clock.schedule_once(do_capture_verif, 0.8)
 
     Clock.schedule_once(step_1_map_screen, 1.2)
     app.run()

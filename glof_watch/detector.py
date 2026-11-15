@@ -30,12 +30,19 @@ def detect_glacial_lakes(
     min_lon, min_lat, max_lon, max_lat = bbox
     pixel_area_ha = (res_m ** 2) / 10000.0
 
-    # 1. Specular water threshold (low backscatter in both VV and VH)
+    # 1. Specular water threshold & Dual-Polarization SAR Water Index (SDWI)
     valid_sar = (~np.isnan(vv_db)) & (~np.isnan(vh_db))
-    radar_water = valid_sar & (vv_db < RADAR_VV_WATER_THRESHOLD_DB) & (vh_db < RADAR_VH_WATER_THRESHOLD_DB)
+    sdwi_db = (vv_db + vh_db) / 2.0
+    radar_water = valid_sar & (
+        ((vv_db < RADAR_VV_WATER_THRESHOLD_DB) & (vh_db < RADAR_VH_WATER_THRESHOLD_DB)) |
+        ((sdwi_db < -17.0) & (vv_db < -13.5))
+    )
 
-    # 2. Topographic Slope Shield (Lakes cannot pool on steep terrain)
-    topo_shield = (slope_deg <= MAX_LAKE_SLOPE_DEG) & (dem_arr >= MIN_GLACIATED_ELEV_M)
+    # 2. Topographic Slope Shield (Standing water pools on flat basin floors <= 10.0 deg)
+    target_elev = metadata.get("elevation_approx_m") or metadata.get("elevation_m")
+    min_elev = max(MIN_GLACIATED_ELEV_M, float(target_elev) - 800.0) if target_elev else MIN_GLACIATED_ELEV_M
+    max_slope = max(MAX_LAKE_SLOPE_DEG, 10.0)
+    topo_shield = (slope_deg <= max_slope) & (dem_arr >= min_elev)
 
     # 3. Combined Candidate Water
     raw_candidates = radar_water & topo_shield

@@ -79,8 +79,13 @@ def linear_to_decibels(linear_power: np.ndarray) -> np.ndarray:
     return db
 
 def clean_water_mask_morphology(raw_mask: np.ndarray) -> np.ndarray:
-    """Applies binary opening (to strip isolated speckles) and closing (to bridge shoreline gaps)."""
-    struct = generate_binary_structure(2, 2)
-    opened = binary_opening(raw_mask, structure=struct)
-    closed = binary_closing(opened, structure=struct)
-    return closed
+    """
+    Applies non-destructive morphological closing to bridge shoreline gaps and speckle voids,
+    followed by binary hole filling. Does not perform destructive full-mask erosion so that
+    narrow, elongated, or fringing glacial lakes are strictly preserved.
+    """
+    from scipy.ndimage import binary_fill_holes
+    struct = generate_binary_structure(2, 1)  # 4-connectivity cross
+    closed = binary_closing(raw_mask, structure=struct)
+    filled = binary_fill_holes(closed)
+    return filled

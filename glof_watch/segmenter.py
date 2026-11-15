@@ -65,13 +65,21 @@ def segment_exact_lake_boundaries(
 
     # Determine working grid resolution
     # If optical image is present, work at optical resolution (e.g. 10m)
-    # Otherwise, upsample by 3x to create a 10m-equivalent sub-pixel surface
+    # If DEM is small (focused lakes <= 300k pixels), upsample by 3x for sub-pixel boundary tracing
+    # For large regional corridor scans (> 300k pixels), work at native DEM resolution to guarantee fast execution
     if optical_img is not None and optical_img.ndim == 3:
         H_grid, W_grid = optical_img.shape[0], optical_img.shape[1]
         use_optical = True
+        scale_factor = 1
+    elif dem_arr.size <= 300_000:
+        scale_factor = 3
+        H_grid = dem_arr.shape[0] * scale_factor
+        W_grid = dem_arr.shape[1] * scale_factor
+        use_optical = False
     else:
-        H_grid = dem_arr.shape[0] * 3
-        W_grid = dem_arr.shape[1] * 3
+        scale_factor = 1
+        H_grid = dem_arr.shape[0]
+        W_grid = dem_arr.shape[1]
         use_optical = False
 
     # Accurate ground pixel dimensions in meters
@@ -79,12 +87,19 @@ def segment_exact_lake_boundaries(
     dy_m = (max_lat - min_lat) * 111320.0 / H_grid
     pixel_area_ha_hi = (dx_m * dy_m) / 10000.0
 
-    # Upsample DEM and SAR arrays to high-resolution grid
-    dem_hi = cv2.resize(dem_arr, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
-    slope_hi = cv2.resize(slope_deg, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
-    vv_hi = cv2.resize(vv_db, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
-    vh_hi = cv2.resize(vh_db, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
-    seed_hi = cv2.resize(seed_mask.astype(np.uint8), (W_grid, H_grid), interpolation=cv2.INTER_NEAREST) > 0
+    # Upsample DEM and SAR arrays to high-resolution grid only if scale_factor > 1
+    if scale_factor > 1:
+        dem_hi = cv2.resize(dem_arr, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
+        slope_hi = cv2.resize(slope_deg, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
+        vv_hi = cv2.resize(vv_db, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
+        vh_hi = cv2.resize(vh_db, (W_grid, H_grid), interpolation=cv2.INTER_LINEAR)
+        seed_hi = cv2.resize(seed_mask.astype(np.uint8), (W_grid, H_grid), interpolation=cv2.INTER_NEAREST) > 0
+    else:
+        dem_hi = dem_arr
+        slope_hi = slope_deg
+        vv_hi = vv_db
+        vh_hi = vh_db
+        seed_hi = seed_mask
 
     # 1. SAR Specular Energy Surface (1.0 = specular calm water, 0.0 = rough land)
     sar_spec = np.clip((-vv_hi - 5.0) / 20.0, 0.0, 1.0)
@@ -119,8 +134,8 @@ def segment_exact_lake_boundaries(
         blob = (labeled_seeds == seed_id)
         blob_pixels = int(np.sum(blob))
         
-        # Discard sub-threshold noise seeds
-        if blob_pixels * pixel_area_ha_hi < (MIN_LAKE_AREA_HA * 0.35):
+        # Discard sub-threshold noise seeds (strict physical minimum lake threshold)
+        if blob_pixels * pixel_area_ha_hi < MIN_LAKE_AREA_HA:
             continue
 
         r_idx, c_idx = np.where(blob)
@@ -143,32 +158,43 @@ def segment_exact_lake_boundaries(
         # Median basin elevation of the identified lake seed
         core_elev = float(np.median(chip_dem[chip_seed])) if np.sum(chip_seed) > 0 else float(np.median(chip_dem))
 
-        # Phase 1: High-Resolution Active Contour (Chan-Vese ACWE)
-        # Evolving level-set boundary on the energy functional (1.0 - chip_fused)
-        energy_surface = 1.0 - chip_fused
+        # Phase 1: Prebuilt Marker-Controlled Watershed Segmentation
+        # Uses identified seed core as foreground marker and dry/steep terrain as background
+        energy_surface = (1.0 - chip_fused).astype(np.float64)
+        markers = np.zeros(chip_seed.shape, dtype=np.int32)
+        markers[chip_seed] = 1  # Foreground (water core)
+        bg_condition = (chip_slope > 12.0) | (chip_fused < 0.25) | (np.abs(chip_dem - core_elev) > 12.0)
+        markers[bg_condition] = 2  # Background (steep rock/moraine or dry land)
+
+        try:
+            ws_seg = (seg.watershed(energy_surface, markers=markers, compactness=0.01) == 1)
+        except Exception:
+            ws_seg = chip_seed
+
+        # Phase 2: Morphological Level-Set Active Contour Polishing (Chan-Vese ACWE)
+        # Smooths the boundary along the physical water-gradient zero level set
         try:
             cv_seg = seg.morphological_chan_vese(
                 energy_surface,
-                num_iter=25,
-                init_level_set=chip_seed,
+                num_iter=15,
+                init_level_set=ws_seg,
                 smoothing=1,
                 lambda1=1.1,
                 lambda2=1.0
             )
         except Exception:
-            cv_seg = chip_seed
+            cv_seg = ws_seg
 
-        # Phase 2: Topographic Equipotential & Moraine Wall Clamping
-        # Water cannot pool on slopes > 10.0 deg or deviate > 12m from basin elevation
-        topo_valid = (chip_slope <= 10.0) & (np.abs(chip_dem - core_elev) <= 12.0)
+        # Phase 3: Topographic Equipotential & Moraine Wall Clamping
+        # Hydrostatic equilibrium: continuous water surface lies on a flat horizontal plane (slope <= 10 deg, elevation deviation <= 8m)
+        topo_valid = (chip_slope <= 10.0) & (np.abs(chip_dem - core_elev) <= 8.0)
         refined_chip = cv_seg & topo_valid
 
-        # Morphological hole filling & speckle cleaning
+        # Non-destructive interior void and speckle cleaning
         refined_chip = ndi.binary_fill_holes(refined_chip)
-        refined_chip = ndi.binary_opening(refined_chip, structure=np.ones((2, 2)))
 
         # Fallback to seed if active contour over-contracted
-        if np.sum(refined_chip) < 10:
+        if np.sum(refined_chip) < 4:
             refined_chip = chip_seed
 
         refined_area_ha = float(np.sum(refined_chip) * pixel_area_ha_hi)

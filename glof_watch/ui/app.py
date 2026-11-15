@@ -23,7 +23,18 @@ from kivymd.uix.appbar import (
 )
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon, MDIconButton
 from kivymd.uix.label import MDLabel
+from kivy.core.window import Window
+from kivy.uix.screenmanager import NoTransition
+from kivy.graphics import Color, Rectangle
 
+from glof_watch.ui.theme import (
+    apply_button_style,
+    apply_icon_button_style,
+    COLOR_WINDOW_BG,
+    COLOR_HEADER_BG,
+    COLOR_TEXT_PRIMARY,
+    COLOR_TEXT_CYAN,
+)
 from glof_watch.ui.screens.map_screen import MapScreen
 from glof_watch.ui.screens.analysis_screen import AnalysisScreen
 from glof_watch.ui.screens.search_screen import SearchScreen
@@ -47,11 +58,29 @@ class GLOFWatchApp(MDApp):
         self.lbl_active_target: Optional[MDLabel] = None
 
     def build(self):
+        # Configure Window clear color to solid dark background
+        Window.clearcolor = tuple(COLOR_WINDOW_BG)
+
         # Configure Material Design 3 Dark Theme with Teal/Cyan Accents
         self.theme_cls.theme_style = "Dark"
+        self.theme_cls.dynamic_color = False
+        self.theme_cls.theme_style_switch_animation = False
         self.theme_cls.primary_palette = "Teal"
+        self.theme_cls.set_colors()
 
-        root = MDBoxLayout(orientation="vertical", size_hint=(1, 1))
+        root = MDBoxLayout(
+            orientation="vertical",
+            size_hint=(1, 1),
+            theme_bg_color="Custom",
+            md_bg_color=COLOR_WINDOW_BG
+        )
+        with root.canvas.before:
+            Color(*COLOR_WINDOW_BG)
+            self._root_bg = Rectangle(pos=root.pos, size=root.size)
+        root.bind(
+            pos=lambda *_: setattr(self._root_bg, "pos", root.pos),
+            size=lambda *_: setattr(self._root_bg, "size", root.size)
+        )
 
         # -------------------------------------------------------------
         # Single Unified Scientific Top Navigation Bar
@@ -61,17 +90,30 @@ class GLOFWatchApp(MDApp):
             size_hint=(1, None),
             height=dp(52),
             padding=[dp(16), dp(6), dp(16), dp(6)],
-            spacing=dp(10)
+            spacing=dp(10),
+            theme_bg_color="Custom",
+            md_bg_color=COLOR_HEADER_BG
+        )
+        with header_bar.canvas.before:
+            Color(*COLOR_HEADER_BG)
+            self._header_bg = Rectangle(pos=header_bar.pos, size=header_bar.size)
+        header_bar.bind(
+            pos=lambda *_: setattr(self._header_bg, "pos", header_bar.pos),
+            size=lambda *_: setattr(self._header_bg, "size", header_bar.size)
         )
 
         # Brand / Mission Title with Markdown markup
         brand_box = MDBoxLayout(orientation="horizontal", spacing=dp(8), adaptive_width=True)
-        btn_logo = MDIconButton(
-            icon="satellite-variant",
+        btn_logo = MDButton(
+            MDButtonIcon(icon="satellite-variant"),
+            style="filled",
+            size_hint=(None, None),
+            size=(dp(38), dp(38)),
             on_release=lambda *args: self.switch_to_map()
         )
+        apply_button_style(btn_logo, "action")
         lbl_title = MDLabel(
-            text="[b]GLOF-WATCH[/b] [color=#546e7a]|[/color] High-Altitude Radar-DEM Engine",
+            text="[b]GLOF-WATCH[/b] [color=#00e5ff]|[/color] High-Altitude Radar-DEM Engine",
             markup=True,
             font_style="Title",
             role="medium",
@@ -84,7 +126,7 @@ class GLOFWatchApp(MDApp):
 
         # Active Target Telemetry Badge with Markdown markup
         self.lbl_active_target = MDLabel(
-            text=f"[color=#80cbc4]TARGET:[/color] [b]{self.active_target_name.upper()}[/b]",
+            text=f"[color=#00e5ff]TARGET:[/color] [b]{self.active_target_name.upper()}[/b]",
             markup=True,
             font_style="Label",
             role="large",
@@ -100,21 +142,19 @@ class GLOFWatchApp(MDApp):
         self.btn_nav_map = MDButton(
             MDButtonIcon(icon="map-outline"),
             MDButtonText(text="Map & AOI"),
-            style="filled",
             on_release=lambda *args: self.switch_to_map()
         )
         self.btn_nav_analysis = MDButton(
             MDButtonIcon(icon="radar"),
             MDButtonText(text="Analysis & 3D"),
-            style="tonal",
             on_release=lambda *args: self.switch_to_analysis()
         )
         self.btn_nav_search = MDButton(
             MDButtonIcon(icon="table-search"),
             MDButtonText(text="Search & Verify"),
-            style="tonal",
             on_release=lambda *args: self.switch_to_search()
         )
+        self._update_nav_styles("map")
         nav_box.add_widget(self.btn_nav_map)
         nav_box.add_widget(self.btn_nav_analysis)
         nav_box.add_widget(self.btn_nav_search)
@@ -123,9 +163,11 @@ class GLOFWatchApp(MDApp):
         root.add_widget(header_bar)
 
         # -------------------------------------------------------------
-        # ScreenManager: Orchestrating Screens
+        # ScreenManager: Orchestrating Screens (Instant Transition)
         # -------------------------------------------------------------
         self.screen_manager = MDScreenManager()
+        self.screen_manager.check_transition = lambda *args: None
+        self.screen_manager.transition = NoTransition()
 
         self.map_screen = MapScreen()
         self.analysis_screen = AnalysisScreen()
@@ -154,12 +196,18 @@ class GLOFWatchApp(MDApp):
         if self.lbl_active_target:
             self.lbl_active_target.text = f"[color=#80cbc4]TARGET:[/color] [b]{name.upper()}[/b]"
 
+    def _update_nav_styles(self, active_tab: str):
+        """Applies high-contrast scientific styling to top navigation buttons."""
+        if hasattr(self, "btn_nav_map"):
+            apply_button_style(self.btn_nav_map, "active" if active_tab == "map" else "inactive")
+        if hasattr(self, "btn_nav_analysis"):
+            apply_button_style(self.btn_nav_analysis, "active" if active_tab == "analysis" else "inactive")
+        if hasattr(self, "btn_nav_search"):
+            apply_button_style(self.btn_nav_search, "active" if active_tab == "search" else "inactive")
+
     def switch_to_map(self, lat: Optional[float] = None, lon: Optional[float] = None, zoom: Optional[int] = None):
         """Switches view to MapScreen and optionally centers coordinates."""
-        if hasattr(self, "btn_nav_map"):
-            self.btn_nav_map.style = "filled"
-            self.btn_nav_analysis.style = "tonal"
-            self.btn_nav_search.style = "tonal"
+        self._update_nav_styles("map")
         if self.screen_manager:
             self.screen_manager.current = "map_screen"
         if lat is not None and lon is not None and self.map_screen:
@@ -199,11 +247,7 @@ class GLOFWatchApp(MDApp):
             target_name = self.active_target_name
 
         self.set_active_target(target_info or target_name)
-
-        if hasattr(self, "btn_nav_map"):
-            self.btn_nav_map.style = "tonal"
-            self.btn_nav_analysis.style = "filled"
-            self.btn_nav_search.style = "tonal"
+        self._update_nav_styles("analysis")
 
         # Clean analysis screen state before switching so old runs are completely purged
         if self.analysis_screen:
@@ -217,10 +261,7 @@ class GLOFWatchApp(MDApp):
 
     def switch_to_search(self, detected_lake: Optional[Dict[str, Any]] = None):
         """Switches view to SearchScreen and optionally loads detected lake for cross-check."""
-        if hasattr(self, "btn_nav_map"):
-            self.btn_nav_map.style = "tonal"
-            self.btn_nav_analysis.style = "tonal"
-            self.btn_nav_search.style = "filled"
+        self._update_nav_styles("search")
         if self.screen_manager:
             self.screen_manager.current = "search_screen"
 

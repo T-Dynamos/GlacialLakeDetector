@@ -54,4 +54,7 @@ data/*test*
 data/*offline*
 data/targets_cache
 
+# Local user reports
+GLOF_WATCH_SOFTWARE_ARCHITECTURE_AND_UPGRADES.md
+
 
